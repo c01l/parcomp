@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O3
+CFLAGS=-O3 -lrt
 
 DEPS=loader.o
 

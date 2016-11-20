@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <time.h>
 #include "def.h"
 #include "loader.h"
 
@@ -57,12 +58,24 @@ int main(int argc, char** args) {
 	int n = sampleset.size1 + sampleset.size2;
 	INPUTTYPE *output = malloc(sizeof(INPUTTYPE) * n); // TODO CHECKME reuse memory?
 	
-	merge(&sampleset, output);
+	// setup benchmark
+	struct timespec starttime, endtime;
 	
+	clock_gettime(CLOCK_REALTIME, &starttime);
+	merge(&sampleset, output);
+	clock_gettime(CLOCK_REALTIME, &endtime);
+	
+	// calculate results
+	int sec = endtime.tv_sec - starttime.tv_sec;
+	int nsec = endtime.tv_nsec - starttime.tv_nsec;
+	
+	// print results
 	(void) fprintf(stdout, "Final Array: ");
 	echoArray(output, n);
 	
 	freesample(&sampleset);
+	
+	(void) fprintf(stdout, "Time: %ds %dns\n", sec, nsec);
 	
 	fprintf(stdout, "Process finished!\n");
 	
