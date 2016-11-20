@@ -27,3 +27,10 @@
 *.exe
 *.out
 *.app
+
+
+# out programs
+sequential
+openmp
+cilk
+mpi
