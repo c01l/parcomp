@@ -74,6 +74,7 @@ int main(int argc, char** args) {
 	echoArray(output, n);
 	
 	freesample(&sampleset);
+	free(output);
 	
 	(void) fprintf(stdout, "Time: %ds %dns\n", sec, nsec);
 	
