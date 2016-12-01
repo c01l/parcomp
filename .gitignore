@@ -34,3 +34,6 @@ sequential
 openmp
 cilk
 mpi
+
+#meins
+logger.*
