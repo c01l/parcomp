@@ -2,16 +2,9 @@
 #include <time.h>
 #include "def.h"
 #include "loader.h"
-
-#define COUNT(x) (sizeof(x) / sizeof(x[0]))
-
-/**
- * @brief Merges the two sorted arrays from the sample parameter to one huge sorted array
- * @param sample the sample set
- * @param output the array where the final data gets put
- */
-void merge(struct merge_sample *sample, INPUTTYPE *output);
-
+#include "merge_sequential.h"
+#include "helper.h"
+/*
 static void echoArray(INPUTTYPE *x, size_t size) {
 	int i;
 	for(i = 0; i < size; ++i) {
@@ -62,7 +55,7 @@ int main(int argc, char** args) {
 	struct timespec starttime, endtime;
 	
 	clock_gettime(CLOCK_REALTIME, &starttime);
-	merge(&sampleset, output);
+	merge(&sampleset, output,0);
 	clock_gettime(CLOCK_REALTIME, &endtime);
 	
 	// calculate results
@@ -82,12 +75,23 @@ int main(int argc, char** args) {
 	
 	return 0;
 }
+*/
 
-
-void merge(struct merge_sample *sample, INPUTTYPE *output) {
-	int x = 0;
+void merge(struct merge_sample *sample, INPUTTYPE *output, int start_index, int end_index) {
+        printf("Merge arrays:\n");
+        printf("A[%d]: ", sample->size1);
+        echoArray(sample->array1, sample->size1);
+        printf("B[%d]: ", sample->size2);
+        echoArray(sample->array2, sample->size2);
+        printf("starting at %d\n", start_index);
+        printf("...\n");
+	int x = start_index;
 	int i = 0, j = 0;
 	while(i < sample->size1 && j < sample->size2) {
+                if(x > end_index) {
+                  printf("index (%d) to big (>%d).(startindex = %d). Stop! \n", x, end_index, start_index);
+                  break;
+                }
 		INPUTTYPE v1 = sample->array1[i];
 		INPUTTYPE v2 = sample->array2[j];
 		

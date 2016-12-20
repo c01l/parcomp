@@ -19,6 +19,10 @@ struct pair_of_coranks corank(int i, INPUTTYPE *A, int m, INPUTTYPE *B, int n) {
   int j_low = max (0, (i - n));
   int k_low = 0;
   int counter = 0;
+  struct pair_of_coranks coranks;
+
+  // return value:
+
   
   while(counter < (m + n)) {
     if( j>0  &&  k<n  &&  A[j-1]>B[k] ) {
@@ -37,11 +41,10 @@ struct pair_of_coranks corank(int i, INPUTTYPE *A, int m, INPUTTYPE *B, int n) {
       j = j + delta;
     } else {
       // all conditions are fulfilled
-      struct pair_of_coranks coranks;
       coranks.corank_A = j;
       coranks.corank_B = k;
-      return coranks;
     }
     counter++;
   }
+  return coranks;
 }

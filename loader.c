@@ -21,7 +21,7 @@ int loadsample(char* filename, struct merge_sample *out) {
 	char buff[LOADER_BUFFSIZE];
 	
 	int mode = 0;
-	int pos, size;
+	int pos = 0;
 	
 	INPUTTYPE x;
 	
@@ -81,7 +81,7 @@ int loadsample(char* filename, struct merge_sample *out) {
 		return 2;
 	}
 	
-	fclose(file);
+	return fclose(file);
 }
 
 void freesample(struct merge_sample *sample) {

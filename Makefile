@@ -1,27 +1,28 @@
 CC=gcc
 CFLAGS=-O3 -lrt
 
-DEPS=loader.o corank.o logger.o
+DEPS=loader.o corank.o logger.o helper.o
+TESTS=corank_test.o
 
 BUILDDIR=build
 
 all: sequential openmp cilk mpi
 
 sequential: $(DEPS) merge_sequential.o
-	gcc $^ -o $@
+	$(CC) $^ -o $@
 
-openmp: 
-	echo "Not implemented yet!"
+openmp: $(DEPS) openmp.o
+	gcc -Wall -fopenmp -o omp.out -O3 openmp.c loader.c helper.c corank.c merge_sequential.c
 	
 cilk:
 	echo "Not implemented yet!"
 
-mpi:
+mpi: 
 	echo "Not implemented yet!"
 	
 clean:
 	rm -f $(DEPS) *.o sequential corank
 
-corank: $(DEPS) corank_test.o
-	gcc $^ -o $@
-	./corank
+test: $(DEPS) $(TESTS)
+	$(CC) $^ -o $@
+	./$@
