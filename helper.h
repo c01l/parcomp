@@ -11,4 +11,6 @@ void echoArray(INPUTTYPE *x, size_t size);
 
 void merge_log(char* msg, ...);
 
+void printTimeDiff(struct timespec starttime, struct timespec endtime);
+
 #endif

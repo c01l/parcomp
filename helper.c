@@ -24,3 +24,9 @@ void merge_log(char* format, ...) {
 		(void) fprintf(stdout, "\n");
 	}
 }
+
+void printTimeDiff(struct timespec starttime, struct timespec endtime) {
+	int sec = endtime.tv_sec - starttime.tv_sec;
+	int nsec = endtime.tv_nsec - starttime.tv_nsec;
+	printf("Time: %us %uns\n", sec, nsec);
+}

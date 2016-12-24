@@ -51,9 +51,7 @@ int main(int argc, char *args[]) {
   openmp_merge(&sample, output);
   clock_gettime(CLOCK_REALTIME, &endtime);
 
-  int sec = endtime.tv_sec - starttime.tv_sec;
-  int nsec = endtime.tv_nsec - starttime.tv_nsec;
-  printf("Time: %ds %dns\n", sec, nsec);
+  printTimeDiff(starttime, endtime);
 
   printf("\nresult:\n");
   echoArray(output, n);
