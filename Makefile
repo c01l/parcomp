@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O3 -lrt
+CFLAGS=-O3 -lrt -Wall
 
 DEPS=loader.o corank.o helper.o
 TESTS=corank_test.o
@@ -11,8 +11,8 @@ all: sequential openmp cilk mpi
 sequential: $(DEPS) merge_sequential.o
 	$(CC) $^ -o $@
 
-openmp: $(DEPS) openmp.o
-	gcc -Wall -fopenmp -o $@ -O3 openmp.c loader.c helper.c corank.c merge_sequential.c
+openmp: openmp.c openmp.h $(DEPS) merge_sequential.o
+	gcc -fopenmp -o $@ -O3 $(DEPS) merge_sequential.o openmp.c
 	
 cilk:
 	echo "Not implemented yet!"
