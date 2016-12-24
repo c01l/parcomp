@@ -13,3 +13,14 @@ void echoArray(INPUTTYPE *x, size_t size) {
   }   
   (void) fprintf(stdout, "\n");
 }
+
+void merge_log(char* format, ...) {
+	va_list argp;
+	
+	if(LOGGING_ACTIVE == 1) {
+		va_start(argp, format);
+		vfprintf(stdout, format, argp);
+		va_end(argp);
+		(void) fprintf(stdout, "\n");
+	}
+}

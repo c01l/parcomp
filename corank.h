@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "def.h"
-#include "logger.h"
 
 struct pair_of_coranks {
   int corank_A;

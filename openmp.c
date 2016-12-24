@@ -23,6 +23,18 @@ int main(int argc, char *args[]) {
   } else {
     dynamic_sample = 1;
     //load it
+	
+	int loadErr = loadsample(args[1], &sample);
+	if(loadErr != 0) {
+		char* error;
+		switch(loadErr) {
+			case 1: error = "File could not be read!"; break;
+			case 2: error = "Fileformat is wrong."; break;
+			default: error = "An unknown error occured!"; break;
+		}
+		(void) fprintf(stderr, "Failed to load data: %s\n", error);
+		exit(1);
+	}
   }
 
   printf("Array 1: \n");
@@ -83,19 +95,19 @@ void openmp_merge(struct merge_sample *sample, INPUTTYPE *output) {
     id = omp_get_thread_num();
     range1 = id*len/threads;
     range2 = (id+1)*len/threads;
-    printf("Thread %i/%i just started with range %i - %i\n", id, threads,range1, range2);
+    merge_log("Thread %i/%i just started with range %i - %i\n", id, threads,range1, range2);
     coranks1 = corank(range1, sample->array1, sample->size1, sample->array2,sample->size2);
     coranks2 = corank(range2, sample->array1, sample->size1, sample->array2,sample->size2);
-    printf("corank1 #%d: (%d,%d)\n", id, coranks1.corank_A, coranks1.corank_B);
-    printf("corank2 #%d: (%d,%d)\n", id, coranks2.corank_A, coranks2.corank_B);
+    merge_log("corank1 #%d: (%d,%d)\n", id, coranks1.corank_A, coranks1.corank_B);
+    merge_log("corank2 #%d: (%d,%d)\n", id, coranks2.corank_A, coranks2.corank_B);
     merge_payload.array1 = sample->array1 + coranks1.corank_A;
     merge_payload.size1 = coranks2.corank_A - coranks1.corank_A;
     merge_payload.array2 = sample->array2 + coranks1.corank_B;
     merge_payload.size2 = coranks2.corank_B - coranks1.corank_B;
     merge(&merge_payload, output, range1, range2);
-    printf("%d result :", id);
+    merge_log("%d result :", id);
     echoArray(output + range1, range2-range1);
   }
-  printf("done\n");
+  merge_log("done\n");
   
 }

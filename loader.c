@@ -35,7 +35,7 @@ int loadsample(char* filename, struct merge_sample *out) {
 			free(line);
 		} else {
 			// use line
-			fprintf(stdout, "Parse: %s\n", line);
+			// fprintf(stdout, "Parse: %s\n", line);
 			
 			char* token = strtok(line, ",");
 			while(token != NULL) {

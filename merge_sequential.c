@@ -78,13 +78,13 @@ int main(int argc, char** args) {
 */
 
 void merge(struct merge_sample *sample, INPUTTYPE *output, int start_index, int end_index) {
-        printf("Merge arrays:\n");
-        printf("A[%d]: ", sample->size1);
-        echoArray(sample->array1, sample->size1);
-        printf("B[%d]: ", sample->size2);
-        echoArray(sample->array2, sample->size2);
-        printf("starting at %d\n", start_index);
-        printf("...\n");
+        merge_log("Merge arrays:\n");
+        merge_log("A[%d]: ", sample->size1);
+        if(LOGGING_ACTIVE) echoArray(sample->array1, sample->size1);
+        merge_log("B[%d]: ", sample->size2);
+        if(LOGGING_ACTIVE) echoArray(sample->array2, sample->size2);
+        merge_log("starting at %d\n", start_index);
+        merge_log("...\n");
 	int x = start_index;
 	int i = 0, j = 0;
 	while(i < sample->size1 && j < sample->size2) {
