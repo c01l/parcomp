@@ -49,7 +49,7 @@ esac
 shift # past argument or value
 done
 
-if [ [ "$OUTPUT" == "" ] || [ "$PROG" == "" ] ]; then
+if [ "$OUTPUT" == "" ] || [ "$PROG" == "" ]; then
 	echo "No output name specified!"
 	echo
 	
@@ -62,17 +62,41 @@ compinfo=$(lscpu)
 compinfo_cpucount=$(echo "$compinfo" | grep 'CPU(s):' | cut -c9-)
 compinfo_name=$(hostname)
 
+
+printf "$compinfo_name\n\n" > $OUTPUT.txt
+
+lscpu >> $OUTPUT.txt
+
+printf "\n\n" >> $OUTPUT.txt
+
 benchinfo_starttime=$(date '+%F %H:%M:%S')
 echo "Starting the benchmark at:" $benchinfo_starttime
+echo "Benchmark started:" $benchinfo_starttime >> $OUTPUT.txt
+
+printf "Run;Seconds;Nanoseconds\n" > $OUTPUT.csv
 
 for i in $(seq $REPETITIONS)
 do
-	echo $("$PROG")
+	runoutput=$($PROG)
+	echo "$runoutput" >> $OUTPUT.txt
 	
-	# TODO extract information
+	timeline=$(echo "$runoutput" | grep "Time:")
+	echo $timeline
+	
+	regex=".* ([0-9]+)s ([0-9]+)ns$"
+	if [[ $timeline =~ $regex ]]; then
+		sec="${BASH_REMATCH[1]}"
+		nsec="${BASH_REMATCH[2]}"
+		
+		printf "%s;%s;%s;\n" "$i" "$sec" "$nsec" >> $OUTPUT.csv
+		
+	else 
+		echo "Program gave the wrong output!"
+	fi
+	
 done;
 
 benchinfo_endtime=$(date '+%F %H:%M:%S')
 echo "Finished the benchmark at:" $benchinfo_endtime
-
+echo "Benchmark ended:" $benchinfo_endtime >> $OUTPUT.txt
 
