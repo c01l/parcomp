@@ -18,4 +18,6 @@ void printTimeDiff(struct timespec starttime, struct timespec endtime);
 
 int handleArguments(int argc, char** argv, struct merge_sample *sample);
 
+int checkSorted(INPUTTYPE* array, int size);
+
 #endif

@@ -8,39 +8,31 @@
 #include "corank.h"
 
 
-int main(int argc, char *args[]) {
+int main(int argc, char *argv[]) {
   struct merge_sample sample; 
-  int dynamic_sample = 0;
-  int a[] = { 1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
-  int b[] = { 1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15};
-  if(argc != 2) {
-    // printf("useage: %s <samplefile> \n", args[0]);
-    // printf("but right now just give a toss and take a sample sample.");
-    sample.array1 = a;
-    sample.array2 = b;
-    sample.size1 = sizeof(a)/sizeof(a[0]);
-    sample.size2 = sizeof(b)/sizeof(b[0]);
-  } else {
-    dynamic_sample = 1;
-    //load it
-	
-	int loadErr = loadsample(args[1], &sample);
-	if(loadErr != 0) {
-		char* error;
-		switch(loadErr) {
-			case 1: error = "File could not be read!"; break;
-			case 2: error = "Fileformat is wrong."; break;
-			default: error = "An unknown error occured!"; break;
-		}
-		(void) fprintf(stderr, "Failed to load data: %s\n", error);
-		exit(1);
-	}
+  
+  int errorCode = handleArguments(argc, argv, &sample);
+  if(errorCode != 0) {
+	  exit(errorCode);
   }
-
+  
+  
   printf("Array 1: \n");
-  echoArray(sample.array1, sample.size1);
+  if(sample.size1 > 30) {
+	  echoArray(sample.array1, 30);
+	  printf("Output truncated because it is too large. (size=%d)\n", sample.size1);
+  } else {
+	  echoArray(sample.array1, sample.size1);
+  }
   printf("Array 2: \n");
-  echoArray(sample.array2, sample.size2);
+  if(sample.size2 > 30) {
+	  echoArray(sample.array2, 30);
+	  printf("Output truncated because it is too large. (size=%d)\n", sample.size2);
+  } else {
+	  echoArray(sample.array2, sample.size2);
+  }
+  
+  printf("\n");
 
   int n = sample.size1 + sample.size2;
   INPUTTYPE *output = malloc(sizeof(INPUTTYPE) * n);
@@ -53,13 +45,16 @@ int main(int argc, char *args[]) {
 
   printTimeDiff(starttime, endtime);
 
-  printf("\nresult:\n");
-  echoArray(output, n);
+  printf("\nchecking result-array: ");
+  if(checkSorted(output, n)==1) {
+      printf("Correct\n");
+  } else {
+	  printf("Failed\n");
+  }
   
   free(output);
-  if(dynamic_sample) {
-    freesample(&sample);
-  }
+  freesample(&sample);
+  
   return 0;
 }
 
@@ -104,7 +99,7 @@ void openmp_merge(struct merge_sample *sample, INPUTTYPE *output) {
     merge_payload.size2 = coranks2.corank_B - coranks1.corank_B;
     merge(&merge_payload, output, range1, range2);
     merge_log("%d result :", id);
-    echoArray(output + range1, range2-range1);
+    if(LOGGING_ACTIVE) echoArray(output + range1, range2-range1);
   }
   merge_log("done\n");
   
