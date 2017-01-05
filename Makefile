@@ -12,16 +12,16 @@ sequential: $(DEPS) merge_sequential.o
 	$(CC) $^ -o $@
 
 openmp: openmp.c openmp.h $(DEPS) merge_sequential.o
-	gcc -fopenmp -o $@ -O3 $(DEPS) merge_sequential.o openmp.c
+	gcc -fopenmp -o $@ $(DEPS) merge_sequential.o openmp.c
 	
-cilk:
-	echo "Not implemented yet!"
+cilk: $(DEPS) cilk.c merge_sequential.o
+	gcc -fcilkplus -lcilkrts -o $@ $^
 
 mpi: 
 	echo "Not implemented yet!"
 	
 clean:
-	rm -f $(DEPS) *.o sequential corank openmp
+	rm -f $(DEPS) *.o sequential corank openmp cilk
 
 test: $(DEPS) $(TESTS)
 	$(CC) $^ -o $@

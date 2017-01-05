@@ -85,7 +85,7 @@ void merge(struct merge_sample *sample, INPUTTYPE *output, int start_index, int 
         if(LOGGING_ACTIVE) echoArray(sample->array2, sample->size2);
         merge_log("starting at %d\n", start_index);
         merge_log("...\n");
-	int x = start_index;
+	int x = start_index; // TODO checkme optimizable by "output = output + start_index"? possible to remove index parameters?
 	int i = 0, j = 0;
 	while(i < sample->size1 && j < sample->size2) {
                 if(x > end_index) {
