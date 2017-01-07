@@ -69,6 +69,9 @@ lscpu >> $OUTPUT.txt
 
 printf "\n\n" >> $OUTPUT.txt
 
+printf "Command: $PROG\n" >> $OUTPUT.txt
+printf "Repetitions: $REPETITIONS\n\n" >> $OUTPUT.txt
+
 benchinfo_starttime=$(date '+%F %H:%M:%S')
 echo "Starting the benchmark at:" $benchinfo_starttime
 echo "Benchmark started:" $benchinfo_starttime >> $OUTPUT.txt

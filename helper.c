@@ -25,10 +25,30 @@ void merge_log(char* format, ...) {
 	}
 }
 
+/**
+ * Subtracts two timespec structures.
+ * @see https://gist.github.com/diabloneo/9619917
+ */
+void timespec_diff(struct timespec *start, struct timespec *stop,
+                   struct timespec *result)
+{
+    if ((stop->tv_nsec - start->tv_nsec) < 0) {
+        result->tv_sec = stop->tv_sec - start->tv_sec - 1;
+        result->tv_nsec = stop->tv_nsec - start->tv_nsec + 1000000000;
+    } else {
+        result->tv_sec = stop->tv_sec - start->tv_sec;
+        result->tv_nsec = stop->tv_nsec - start->tv_nsec;
+    }
+
+    return;
+}
+
 void printTimeDiff(struct timespec starttime, struct timespec endtime) {
-	int sec = endtime.tv_sec - starttime.tv_sec;
-	int nsec = endtime.tv_nsec - starttime.tv_nsec;
-	printf("Time: %us %uns\n", sec, nsec);
+	struct timespec result;
+	timespec_diff(&starttime, &endtime, &result);
+	int sec = result.tv_sec;
+	int nsec = result.tv_nsec;
+	printf("Time: %ds %dns\n", sec, nsec);
 }
 
 static void usage(char* progname) {
