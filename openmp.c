@@ -2,10 +2,13 @@
 #include <stdlib.h>
 #include <time.h>
 #include <omp.h>
-#include "openmp.h"
 #include "helper.h"
 #include "loader.h"
 #include "corank.h"
+#include "merge_sequential.h"
+#include "def.h"
+
+void openmp_merge(struct merge_sample *sample, INPUTTYPE *output);
 
 
 int main(int argc, char *argv[]) {
@@ -61,23 +64,17 @@ int main(int argc, char *argv[]) {
 
 
 void openmp_merge(struct merge_sample *sample, INPUTTYPE *output) {
-  int max = omp_get_max_threads();
-  int threads = 4;
+  int threads = omp_get_max_threads();
   int len = sample->size1 + sample->size2;
 
   //private:
   int id, range1, range2;
   struct pair_of_coranks coranks1, coranks2;
   struct merge_sample merge_payload;
+  
 
-  if(threads < max) {
-    if (threads < 1) threads = 1;
-    omp_set_num_threads(threads);
-  } else {
-    threads = max;
-  }
 
-  printf("Number of threads (maximum): %i (%i)\n", threads, max);
+  printf("Number of threads (maximum): %i\n", threads);
   if(threads < 0){
     printf("max is < 0... not so good. Quit function\n");
     return;
