@@ -4,6 +4,7 @@
 #include "helper.h"
 #include "loader.h"
 #include "corank.h"
+#include "merge_sequential.h"
 #include <cilk/cilk.h>
 
 void cilk_merge(struct merge_sample *sample, INPUTTYPE *output);
@@ -82,7 +83,7 @@ void cilk_merge(struct merge_sample *sample, INPUTTYPE *output) {
 void cilk_mergeRecursive(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2) {
 	int size = range2 - range1 + 1;
 	
-	if(size < 1024) {
+	if(size < 4096) {
 		merge_log("Starting sequential mode for [%d; %d] (size=%d)", range1, range2, size);
 		cilk_mergeSeq(sample, output, range1, range2);
 		return;

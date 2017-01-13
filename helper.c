@@ -79,7 +79,7 @@ int handleArguments(int argc, char** argv, struct merge_sample *sample) {
 		int arraySize1, arraySize2;
 		
 		arraySize1 = strtol(argv[2], NULL, 10);
-		arraySize2 = strtol(argv[2], NULL, 10);
+		arraySize2 = strtol(argv[3], NULL, 10);
 		
 		if(arraySize1 <= 0 || arraySize2 <= 0) {
 			fprintf(stderr, "Array Size must be bigger than zero!");
