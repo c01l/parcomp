@@ -14,6 +14,11 @@ void echoArray(INPUTTYPE *x, size_t size) {
   (void) fprintf(stdout, "\n");
 }
 
+void echoArrayExt(INPUTTYPE *x, size_t size, char* text) {
+  printf("%s :", text);
+  echoArray(x, size);
+}
+
 void merge_log(char* format, ...) {
 	va_list argp;
 	
@@ -130,4 +135,25 @@ int checkSorted(INPUTTYPE* array, int size) {
 		i++;
 	}
 	return 1;
+}
+
+void mergeSeq(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2, int shouldShiftInOutputArray) {
+    struct merge_sample merge_payload;
+    struct pair_of_coranks coranks1, coranks2;
+
+    coranks1 = corank(range1, sample->array1, sample->size1, sample->array2,sample->size2);
+    coranks2 = corank(range2, sample->array1, sample->size1, sample->array2,sample->size2);
+    merge_log("[mergeSeq] corank1: (%d,%d)", coranks1.corank_A, coranks1.corank_B);
+    merge_log("[mergeSeq] corank2: (%d,%d)", coranks2.corank_A, coranks2.corank_B);
+    merge_log("[mergeSeq] shouldShift: %d)", shouldShiftInOutputArray);
+    
+    merge_payload.array1 = sample->array1 + coranks1.corank_A;
+    merge_payload.size1 = coranks2.corank_A - coranks1.corank_A;
+    merge_payload.array2 = sample->array2 + coranks1.corank_B;
+    merge_payload.size2 = coranks2.corank_B - coranks1.corank_B;
+    int offset = shouldShiftInOutputArray ? range1 : 0;
+    merge(&merge_payload, output, offset, range2 - range1 + offset);
+    
+    merge_log("[mergeSeq] with (%d, %d) result :", range1, range2);
+    if(LOGGING_ACTIVE) echoArray(output + offset, range2-range1);
 }

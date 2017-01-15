@@ -17,9 +17,8 @@ openmp: openmp.c openmp.h $(DEPS) merge_sequential.o
 cilk: $(DEPS) cilk.c merge_sequential.o
 	gcc -fcilkplus -lcilkrts -o $@ $^
 
-mpi: 
-	echo "Not implemented yet!"
-	
+mpi: $(DEPS) mpi.c merge_sequential.o
+	mpicc -o mpi.out $^
 clean:
 	rm -f $(DEPS) *.o sequential corank openmp cilk
 
