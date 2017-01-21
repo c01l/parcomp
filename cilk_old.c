@@ -8,7 +8,7 @@
 #include <cilk/cilk.h>
 
 void cilk_merge(struct merge_sample *sample, INPUTTYPE *output);
-void cilk_mergeRecursive(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2, int target_size);
+void cilk_mergeRecursive(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2);
 
 /**
  * @brief Merges two arrays from a merge_sample to an output-array. It will only sort the elements in the given range. This method does not spawn any new workers.
@@ -72,18 +72,18 @@ int main(int argc, char** argv) {
 
 
 void cilk_merge(struct merge_sample *sample, INPUTTYPE *output) {
-  int threads = 48;
+  int threads = 4;
   int len = sample->size1 + sample->size2;
 
-  cilk_mergeRecursive(sample, output, 0, len - 1, len / threads + 1);
+  cilk_mergeRecursive(sample, output, 0, len - 1);
   
   merge_log("done\n");  
 }
 
-void cilk_mergeRecursive(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2, int target_size) {
+void cilk_mergeRecursive(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2) {
 	int size = range2 - range1 + 1;
 	
-	if(size <= target_size) {
+	if(size < 4096) {
 		merge_log("Starting sequential mode for [%d; %d] (size=%d)", range1, range2, size);
 		cilk_mergeSeq(sample, output, range1, range2);
 		return;
@@ -93,8 +93,8 @@ void cilk_mergeRecursive(struct merge_sample *sample, INPUTTYPE *output, int ran
 	
 	merge_log("Splitting in [%d; %d] and [%d; %d]", range1, middle - 1, middle, range2);
 	
-	cilk_spawn cilk_mergeRecursive(sample, output, range1, middle - 1, target_size);
-	cilk_spawn cilk_mergeRecursive(sample, output, middle, range2, target_size);
+	cilk_spawn cilk_mergeRecursive(sample, output, range1, middle - 1);
+	cilk_spawn cilk_mergeRecursive(sample, output, middle, range2);
 }
 
 void cilk_mergeSeq(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2) {
