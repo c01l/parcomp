@@ -57,7 +57,14 @@ void printTimeDiff(struct timespec starttime, struct timespec endtime) {
 }
 
 static void usage(char* progname) {
-	printf("Usage: %s [-r <size1> <size2>] | [-f <example-file>]\n", progname);
+	printf("Usage: %s [(-r|-s1|-s2|-i) <size1> <size2>] | [-f <example-file>]\n", progname);
+	printf("\t-f <filename>\twill read the example data from a file\n");
+	printf("\t-s1 will generate an example where all elements of array1 are smaller than array2\n");
+	printf("\t-s2 will generate an example where all elements of array2 are smaller than array1\n");
+	printf("\t-r will fill the arrays randomly\n");
+	printf("\t-i will interleave the numbers in both arrays. (Array 1: 1, 3, 5, 7, ...;  Array 2: 2, 4, 6, 8, ...)\n\n");
+	
+	printf("For -f, -s1, -s2 and -i array-sizes must be entered.\n\n");
 }
 
 int handleArguments(int argc, char** argv, struct merge_sample *sample) {
@@ -104,6 +111,98 @@ int handleArguments(int argc, char** argv, struct merge_sample *sample) {
 		i = j = x = 0;
 		while(i < arraySize1 && j < arraySize2) {
 			if(rand() % 2 == 0) {
+				sample->array1[i++] = x;
+			} else {
+				sample->array2[j++] = x;
+			}
+			++x;
+		}
+		while(i < arraySize1) {
+			sample->array1[i++] = x++;
+		}
+		while(j < arraySize2) {
+			sample->array2[j++] = x++;
+		}
+		
+		return 0;
+	} else if(strcmp(argv[1], "-s1")==0 && argc==4) {
+		int arraySize1, arraySize2;
+		
+		arraySize1 = strtol(argv[2], NULL, 10);
+		arraySize2 = strtol(argv[3], NULL, 10);
+		
+		if(arraySize1 <= 0 || arraySize2 <= 0) {
+			fprintf(stderr, "Array Size must be bigger than zero!");
+			return (-1);
+		}
+		
+		// allocate arrays
+		sample->array1 = malloc(sizeof(int) * arraySize1);
+		sample->array2 = malloc(sizeof(int) * arraySize2);
+		sample->size1 = arraySize1;
+		sample->size2 = arraySize2;
+		
+		// spread numbers over arrays
+		int i = 0, x = 0;
+		while(i < arraySize2) {
+			sample->array2[i++] = x++;
+		}
+		i = 0;
+		while(i < arraySize1) {
+			sample->array1[i++] = x++;
+		}
+		
+		return 0;
+	} else if(strcmp(argv[1], "-s2") == 0 && argc==4) {
+		int arraySize1, arraySize2;
+		
+		arraySize1 = strtol(argv[2], NULL, 10);
+		arraySize2 = strtol(argv[3], NULL, 10);
+		
+		if(arraySize1 <= 0 || arraySize2 <= 0) {
+			fprintf(stderr, "Array Size must be bigger than zero!");
+			return (-1);
+		}
+		
+		// allocate arrays
+		sample->array1 = malloc(sizeof(int) * arraySize1);
+		sample->array2 = malloc(sizeof(int) * arraySize2);
+		sample->size1 = arraySize1;
+		sample->size2 = arraySize2;
+		
+		// spread numbers over arrays
+		int i = 0, x = 0;
+		while(i < arraySize1) {
+			sample->array1[i++] = x++;
+		}
+		i = 0;
+		while(i < arraySize2) {
+			sample->array2[i++] = x++;
+		}
+		
+		return 0;
+	} else if(strcmp(argv[1], "-i") == 0 && argc==4) {
+		int arraySize1, arraySize2;
+		
+		arraySize1 = strtol(argv[2], NULL, 10);
+		arraySize2 = strtol(argv[3], NULL, 10);
+		
+		if(arraySize1 <= 0 || arraySize2 <= 0) {
+			fprintf(stderr, "Array Size must be bigger than zero!");
+			return (-1);
+		}
+		
+		// allocate arrays
+		sample->array1 = malloc(sizeof(int) * arraySize1);
+		sample->array2 = malloc(sizeof(int) * arraySize2);
+		sample->size1 = arraySize1;
+		sample->size2 = arraySize2;
+		
+		// spread numbers over arrays
+		int i, j, x;
+		i = j = x = 0;
+		while(i < arraySize1 && j < arraySize2) {
+			if(x % 2 == 0) {
 				sample->array1[i++] = x;
 			} else {
 				sample->array2[j++] = x;
