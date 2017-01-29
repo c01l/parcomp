@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
   } else {
 	  printf("Failed\n");
   }
-  
+
   free(output);
   freesample(&sample);
   
