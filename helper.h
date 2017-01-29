@@ -24,5 +24,7 @@ int handleArguments(int argc, char** argv, struct merge_sample *sample);
 
 int checkSorted(INPUTTYPE* array, int size);
 
+void testIfSorted(INPUTTYPE* A, int size);
+
 void mergeSeq(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2, int shouldShiftInOutputArray);
 #endif

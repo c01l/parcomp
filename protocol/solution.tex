@@ -1,0 +1,48 @@
+\section{Solution}
+For every solution we took the following approach:
+The input arrays $A$ and $B$ are  split into parts $A_1,\ldots,A_p \subset A$  and $B_1,\ldots B_p \subset B$
+, in a way that all elements in $A_i \cup B_i$ are smaller then those in $A_{i+1} \cup B_{i+1}$. 
+With such a distribution given, each Process $i$ merges independently $A_i$ and $B_i$ using a simple sequential merge algorithm.
+Afterwards a master process concatinates the results.
+
+
+\subsection{Co-ranking}
+In order to obtain an distribution as mentioned above, we used a so called co-ranking algorithm.
+The idea was that the resulting array is divided in as equal ranges as possible.
+For each range we are interested in the elements of $A$ and $B$ which will go there.
+Since the input arrays are already sorted, these elements are positioned in a row.
+So the co-ranking algorithm should yield the indexes of $A$ and $B$ that frame such a block.
+
+\subsection{Implementation}
+
+\subsubsection{OpenMP}
+
+\subsubsection{Cilk}
+
+\subsubsection{MPI}
+For the MPI implementation it is assumed that the input arrays are already distributed among all processes.
+In contrast to other implementation these processes need to activly communicate to calculate the coranks.
+To archieve this, each process makes its array parts accessible by opening a MPI window.
+This is demonstrated in \hyperref[code:mpi_window]{Listing \ref*{code:mpi_window}}.
+
+\begin{lstlisting}[caption=window to share arrays, label=code:mpi_window,style=c]
+MPI_Win_create(A, len1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winA);
+MPI_Win_create(B, len2, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winB);
+\end{lstlisting}
+
+Afterwards other processes can read from them as presented in \hyperref[code:mpi_get]{Listing \ref*{code:mpi_get}}.
+
+\begin{lstlisting}[caption=window to share arrays, label=code:mpi_get,style=c]
+int value;
+MPI_Win_lock\(MPI_LOCK_SHARED, targetRank, 0, win1\);
+  MPI_Get\(value, 1, MPI_INT, targetRank, d, 1, MPI_INT, win1\);
+MPI_Win_unlock\(targetRank, win1\);
+\end{lstlisting}
+
+Eventually we wrote a function getValueFrom(int index,MPI\_Win win,...) for reading elements from a certain position in $A$ (or $B$).
+Therefor it calculates which process has the required part of $A$ (or $B$).
+If it is the same process it reads it from its own array.
+Otherwise it uses the access method from \hyperref[code:mpi_get]{Listing \ref*{code:mpi_get}}.
+
+For a MPI version of the corank algorithm, we replaced all occurrences of $A[i]$ and $B[i]$ with theValueFrom()-function.
+\section{Testing}

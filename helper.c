@@ -236,6 +236,24 @@ int checkSorted(INPUTTYPE* array, int size) {
 	return 1;
 }
 
+void testIfSorted(INPUTTYPE* A, int size) {
+  int i, fail = 0;
+  for(i = 1; i < size; i++) {
+    if(A[i]-1 != A[i-1]){
+      fail = 1;
+      break;
+    }
+  }
+  if(checkSorted(A, size)) {
+    printf("Correct!\n");
+  } else {
+    printf("Failed!\n");
+  }
+
+  printf("test if output[i+1] == output[i] + 1\n");
+  if(fail) printf("row test failed @index %i\n", i);
+}
+
 void mergeSeq(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2, int shouldShiftInOutputArray) {
     struct merge_sample merge_payload;
     struct pair_of_coranks coranks1, coranks2;
