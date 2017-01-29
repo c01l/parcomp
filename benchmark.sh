@@ -65,7 +65,7 @@ compinfo_name=$(hostname)
 
 printf "$compinfo_name\n\n" > $OUTPUT.txt
 
-lscpu >> $OUTPUT.txt
+# lscpu >> $OUTPUT.txt
 
 printf "\n\n" >> $OUTPUT.txt
 
@@ -81,7 +81,7 @@ printf "Run;Seconds;Nanoseconds\n" > $OUTPUT.csv
 for i in $(seq $REPETITIONS)
 do
 	runoutput=$($PROG)
-	echo "$runoutput" >> $OUTPUT.txt
+	# echo "$runoutput" >> $OUTPUT.txt
 	
 	timeline=$(echo "$runoutput" | grep "Time:")
 	echo $timeline
