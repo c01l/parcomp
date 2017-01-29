@@ -1,0 +1,123 @@
+\documentclass[12pt,a4paper,titlepage,oneside]{scrartcl}
+\newcommand{\lang}{de}
+\usepackage{pp}
+
+\newcommand{\team}{2}
+\newcommand{\dokumenttyp}{Bericht}
+% Date
+\newcommand{\datum}{\today}
+
+\newcommand{\lvaname}{\ifthenelse{\equal{\lang}{de}}{Einführung paralleles
+Rechnen}{Parallel Computing}} 
+\newcommand{\lvanr}{184.710}
+\newcommand{\semester}{WS 2016}
+
+% Student data in Lab0 or 1. student of team in Lab1
+\newcommand{\studentAName}{Ferdinand Baarlink}
+\renewcommand{\studentAMatrnr}{1635879}
+
+% 2. student of team in Lab1, for Lab0 or if your team has less students, remove these 2 lines
+\newcommand{\studentBName}{Roland W?}
+\renewcommand{\studentBMatrnr}{994984848}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% DO NOT CHANGE THE FOLLOWING PART
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\colormode}{color}
+
+
+\begin{document}
+
+
+%%%%%%%% TITLE PAGE %%%%%%%%%%%%%%%%%%
+
+\begin{center}
+\vspace{2.5cm}
+{\LARGE\textbf \dokumenttyp\\}
+\vspace{0.5cm}
+{\LARGE\textbf \lvaname\\}
+\vspace{0.5cm}
+{\LARGE \lvanr\ -- \semester\\}
+\vspace{1.0cm}
+{\LARGE \datum}
+\vspace{1.5cm}
+
+{\LARGE \ifthenelse{\equal{\lang}{de}}{Gruppe}{Group} \team}
+\vspace{1.5cm}
+
+\teamnMitglieder
+
+
+\end{center}
+
+\vspace{1.5cm}
+
+\newpage
+%%%%%%%% TITLE PAGE ENDS HERE %%%%%%%%
+
+\setcounter{section}{0}
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% CONTENT OF DOCUMENT STARTS HERE
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Einleitung}
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+
+
+\section{Beispiele}
+\subsection{Source Code formatieren}
+Es folgen einige Beispiele wie Sourcecode in diesem Dokument formatiert und referenziert werden kann
+(\hyperref[code:beispiel1]{siehe Listing~\ref*{code:beispiel1} auf Seite~\pageref*{code:beispiel1}} und \hyperref[code:beispiel2]{siehe Listing~\ref*{code:beispiel2} auf Seite~\pageref*{code:beispiel2}}).
+
+Ebenso können kurzer Code oder kurze Befehle direkt in der Zeile in einem \lstinline{lstinline Block} mit typengleicher Schrift formatiert werden.
+
+\lstinputlisting[caption=Example C/C++ file,label=code:beispiel1,style=c]{corank.c}
+
+\begin{lstlisting}[caption=Example bash script,label=code:beispiel2,style=simple]
+#!/bin/bash
+echo "Bash version ${BASH_VERSION}..."
+for i in {0..10..2}
+  do
+     echo "Welcome $i times"
+ done
+
+echo "some very very very very very very very very very very very very very very very very very very very very long string"
+
+exit 0;
+\end{lstlisting}
+
+\subsection{Bilder}
+
+Es folgen einige Beispiele wie Bilder in diesem Dokument eingefuegt werden koennen
+%(\hyperref[fig:cilk01]{siehe Abbildung~\ref*{fig:cilk01} auf
+%Seite~\pageref*{fig:cilk01}}).
+
+%\begin{figure}[h!]
+  %\centering
+  %\fbox{
+    %\includegraphics[width=0.8\textwidth]{./imgs/graph1.png} %width in prozent.
+  %}
+  %\caption{Cilk: n = 1 000 000}
+  %\label{fig:cilk01}
+%\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% DO NOT CHANGE THE FOLLOWING PART
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+
+

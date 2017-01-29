@@ -19,6 +19,7 @@ cilk: $(DEPS) cilk.c merge_sequential.o
 
 mpi: $(DEPS) mpi.c merge_sequential.o
 	mpicc -o mpi.out $^
+
 clean:
 	rm -f $(DEPS) *.o sequential corank openmp cilk
 
