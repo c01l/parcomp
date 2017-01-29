@@ -41,12 +41,16 @@ int main(int argc, char *argv[]) {
   INPUTTYPE *output = malloc(sizeof(INPUTTYPE) * n);
   
   // set up timer:
-  struct timespec starttime, endtime;
-  clock_gettime(CLOCK_REALTIME, &starttime);
+  double starttime, endtime;
+  starttime = omp_get_wtime();
   openmp_merge(&sample, output);
-  clock_gettime(CLOCK_REALTIME, &endtime);
+  endtime = omp_get_wtime();
 
-  printTimeDiff(starttime, endtime);
+  double elapsedTime = endtime - starttime;
+  int sec = (int) elapsedTime;
+  int nsec = (elapsedTime - sec) * 1000000000;
+
+  printf("Time: %ds %dns\n", sec, nsec);
 
   printf("\nchecking result-array: ");
   if(checkSorted(output, n)==1) {
@@ -54,6 +58,8 @@ int main(int argc, char *argv[]) {
   } else {
 	  printf("Failed\n");
   }
+
+  // echoArray(output, 100);
 
   free(output);
   freesample(&sample);
