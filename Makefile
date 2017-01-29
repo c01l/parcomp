@@ -8,7 +8,7 @@ BUILDDIR=build
 
 all: sequential openmp cilk mpi
 
-sequential: $(DEPS) merge_sequential.o
+sequential: $(DEPS) merge_sequential.o sequential.c
 	$(CC) $^ -o $@
 
 openmp: openmp.c openmp.h $(DEPS) merge_sequential.o
