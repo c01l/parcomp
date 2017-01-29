@@ -6,7 +6,6 @@
 
 \newcommand{\team}{2}
 \newcommand{\dokumenttyp}{Report}
-% Date
 \newcommand{\datum}{\today}
 
 \newcommand{\lvaname}{\ifthenelse{\equal{\lang}{de}}{Einführung paralleles
@@ -14,21 +13,12 @@ Rechnen}{Parallel Computing}}
 \newcommand{\lvanr}{184.710}
 \newcommand{\semester}{WS 2016}
 
-% Student data in Lab0 or 1. student of team in Lab1
 \newcommand{\studentAName}{Ferdinand Baarlink}
 \renewcommand{\studentAMatrnr}{1635879}
 
-% 2. student of team in Lab1, for Lab0 or if your team has less students, remove these 2 lines
 \newcommand{\studentBName}{Roland Wallner}
 \renewcommand{\studentBMatrnr}{1427019}
 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% DO NOT CHANGE THE FOLLOWING PART
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\colormode}{color}
 
@@ -66,28 +56,10 @@ Rechnen}{Parallel Computing}}
 %\setcounter{tocdepth}{2}
 \tableofcontents
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% CONTENT OF DOCUMENT STARTS HERE
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Introduction}
 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-
-\section{Solution}
-
-\subsection{Co-ranking}
-
-\subsection{Implementation}
-
-\subsubsection{OpenMP}
-
-\subsubsection{Cilk}
-
-\subsubsection{MPI}
-
-\section{Testing}
+\include{solution}
 
 \section{Benchmark setup}
 For our tests we measured the time that the operation needed with the appropiate methods. So we used \textit{omp\_get\_wtime} for OpenMP, \textit{clock\_gettime} for Cilk and \textit{MPI\_Wtime} for MPI.
