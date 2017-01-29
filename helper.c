@@ -244,14 +244,14 @@ void testIfSorted(INPUTTYPE* A, int size) {
       break;
     }
   }
-  if(checkSorted(A, size)) {
+
+  printf("test if output[i+1] == output[i] + 1 for all i\n");
+  if(!fail) {
     printf("Correct!\n");
   } else {
-    printf("Failed!\n");
+    printf("row test failed @index %i\n", i);
+    printf("array[%i] = %i\t array[%i] = %i\n", i-1, A[i-1], i, A[i]);
   }
-
-  printf("test if output[i+1] == output[i] + 1\n");
-  if(fail) printf("row test failed @index %i\n", i);
 }
 
 void mergeSeq(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2, int shouldShiftInOutputArray) {
