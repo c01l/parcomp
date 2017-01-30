@@ -49,21 +49,28 @@ This leads to following implementation in C.
 \subsubsection{OpenMP}
 In OpenMP, the programm runs sequentially in one master thread until it reaches a parallel section.
 At this point new threads are created to execute this section simultaneously.
-This section is marked by the directive \textbf{pragma omp parallel num\_threads(p) private(a, b, ..)}, where p is the number of threads and a, b, ... are local variables.
+This section is marked by the directive
+
+\textbf{\#pragma omp parallel num\_threads(p) private(a, b, ..)},
+
+where p is the number of threads and a, b, ... are local variables.
 All threads share a common address space.
-If a variable is not explitly marked as private, all threads access the same address when they use this variable.
+If a variable is not explicitly marked as private, all threads access the same address when they use this variable.
 When the parallel section is left, join ... master thread runs again.
 
-For our implementation this means, that the reading/creation of the input arrays are first done sequentially in a master thread.
-Afterwards the space for the resulting array is allocated and is made accessible in a public variable.
+For our implementation this means, that the master thread first reads/creates the input arrays.
+Afterwards it allocates the space for the resulting array and makes it available in a public variable.
 Then the parallel section is entered and the threads are created.
 Each thread calculates its coranks for the indexes
 $id \cdot \frac{output\_length}{number\_of\_threads}$
 and
-$(id+1)\cdot \frac{output\_length}{number\_of\_threads}$.
-Then it merges directly from the input arrays into the space that is allocated for the output.
+$(id+1)\cdot \frac{output\_length}{number\_of\_threads}$, where $id$ is the id of the actual thread.
+Then it merges directly from the input arrays into the space that is allocated for the result.
+
 Note here that both the output array and the input arrays are public variables for all threads.
 Then the parallel segment is left and the master thread checks the result for corectness.
+
+The following snipped shows how the parallel part
 
 
 \subsubsection{Cilk}
