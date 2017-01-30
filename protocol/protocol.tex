@@ -124,12 +124,7 @@ RAM & 128 GB DDR3-1333 & 4 GB DDR3-1600 \\ \hline
 
 \section{Results}
 
-
-\subsection{Expected Results}
-
-
-
-\subsection{Real Results}
+\subsection{Saturn}
 
 \begin{figure}[h]
 \includegraphics[width=\linewidth]{Saturn_OpenMP_10000}
@@ -194,44 +189,8 @@ Either way, we were not able to reach any positive speedup in our \textit{cilk}-
 \end{figure}
 
 \section{Summary}
+We produced code that works for big numbers, but tested it with relativly small problem sizes. The result is that we seem to have no real speedup.
 
-
-\section{Beispiele}
-\subsection{Source Code formatieren}
-Es folgen einige Beispiele wie Sourcecode in diesem Dokument formatiert und referenziert werden kann
-(\hyperref[code:beispiel1]{siehe Listing~\ref*{code:beispiel1} auf Seite~\pageref*{code:beispiel1}} und \hyperref[code:beispiel2]{siehe Listing~\ref*{code:beispiel2} auf Seite~\pageref*{code:beispiel2}}).
-
-Ebenso können kurzer Code oder kurze Befehle direkt in der Zeile in einem \lstinline{lstinline Block} mit typengleicher Schrift formatiert werden.
-
-\lstinputlisting[caption=Example C/C++ file,label=code:beispiel1,style=c]{corank.c}
-
-\begin{lstlisting}[caption=Example bash script,label=code:beispiel2,style=simple]
-#!/bin/bash
-echo "Bash version ${BASH_VERSION}..."
-for i in {0..10..2}
-  do
-     echo "Welcome $i times"
- done
-
-echo "some very very very very very very very very very very very very very very very very very very very very long string"
-
-exit 0;
-\end{lstlisting}
-
-\subsection{Bilder}
-
-Es folgen einige Beispiele wie Bilder in diesem Dokument eingefuegt werden koennen
-%(\hyperref[fig:cilk01]{siehe Abbildung~\ref*{fig:cilk01} auf
-%Seite~\pageref*{fig:cilk01}}).
-
-%\begin{figure}[h!]
-  %\centering
-  %\fbox{
-    %\includegraphics[width=0.8\textwidth]{./imgs/graph1.png} %width in prozent.
-  %}
-  %\caption{Cilk: n = 1 000 000}
-  %\label{fig:cilk01}
-%\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

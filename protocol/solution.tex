@@ -74,6 +74,32 @@ The following snipped shows how the parallel part
 
 
 \subsubsection{Cilk}
+Cilk works different than OpenMP. In Cilk we have p worker threads that work on any amount of tasks. So our the solution is to break the arrays down into subparts by a recursive strategy, which can be seen in Listing \ref{code:cilk_recursion}.
+
+In our first solution the \textit{target\_size}, which specifies the maximum amount of elements a task can have, was an constant of 4096. The problem was that too many packets were generated and the stealing of packets took much longer than the sequential algorithm.
+
+So we changed the constant to a dynamic variable that is calculated so only 48 packets will be created. So we try to remove the work-stealing part of cilk away, as it seems too slow an does not benefit our runtime in any way. The idea behind our algorithm is to provide enough packets for systems with up to 48 worker threads, as the biggest machine we tested our algorithm on had that many cores.
+But there is another reason why we switched to this fixed amount of tasks solution. If we would have kept the old solution with a constant cutoff value, we would have needed to increase this value to a rather large number, to justify the generation of a packet. This would result in no paralellization to be used for the problemsizes we want to test as 50-100000 would have ended up being only one packet.
+
+After we split up the problem with this recursive algorithm we finally calculated the coranks for each packet and started to merge each packet sequentially.
+
+\begin{lstlisting}[caption=recursive cilk strategy, label=code:cilk_recursion, style=c]
+void cilk_mergeRecursive(struct merge_sample *sample, INPUTTYPE *output, int range1, int range2, int target_size) {
+	int size = range2 - range1 + 1;
+	
+	if(size <= target_size) {
+		merge_log("Starting sequential mode for [%d; %d] (size=%d)", range1, range2, size);
+		cilk_mergeSeq(sample, output, range1, range2);
+		return;
+	}
+	
+	int middle = range1 + size / 2;
+	merge_log("Splitting in [%d; %d] and [%d; %d]", range1, middle - 1, middle, range2);
+	
+	cilk_spawn cilk_mergeRecursive(sample, output, range1, middle - 1, target_size);
+	cilk_spawn cilk_mergeRecursive(sample, output, middle, range2, target_size);
+}
+\end{lstlisting}
 
 \subsubsection{MPI}
 For the MPI implementation it is assumed that the input arrays are already distributed among all processes.
@@ -106,5 +132,13 @@ For a MPI version of the corank algorithm, we replaced all occurrences of $A[i]$
 \textbf{Issues with MPI:}
 At the time of writing we had problems to run our MPI implementation with arbitrary array sizes.
 So we assume that the number of processes divides the array lengths and that both arrays have the same size.
+
 \section{Testing}
+We performed tests with small sample arrays where the results are known.
+
+The coranking algorithm was tested more consequently as it is used by every implementation for each framework. We wrote a program that tested the functionality for normal cases and edge cases like arrays with only one element or arrays with duplicate numbers.
+
+The results of each calculation was furthermore tested for correctness. It was assumed that the input sequences are are each sorted in itself and that there are no duplicates. So after the merge we could check if the following formula holds.
+
+TODO
 
