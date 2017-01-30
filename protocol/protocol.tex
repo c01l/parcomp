@@ -136,41 +136,63 @@ RAM & 128 GB DDR3-1333 & 4 GB DDR3-1600 \\ \hline
 \begin{figure}[h]
 \includegraphics[width=\linewidth]{Saturn_OpenMP_10000}
 \caption{OpenMP / All Modes / m=n=10000}
+\label{fig:omp_allm_10000}
 \end{figure}
 
+As shown in Figure \ref{fig:omp_allm_10000} paralellization results in worse times when the sample size is too small. In this case we cannot provide enough work for each core so the more cores we add the longer the algorithm will take to merge the two arrays.
+
+In Cilk we will see similar results. (Figure \ref{fig:cilk_allm_10000}) But here we can see an improvment at the start. When looking at the graph we can conclude that if you have a problem size of m=n=10000 it is more efficient to use Cilk with 6 to 7 workerthreads than using only one or more than 10.
+
 \begin{figure}[h]
-\includegraphics[width=\linewidth]{Saturn_Cilk_10000}
+\includegraphics[width=\linewidth, height=0.6\linewidth]{Saturn_Cilk_10000}
 \caption{Cilk / All Modes / m=n=10000}
+\label{fig:cilk_allm_10000}
+\end{figure}
+\begin{figure}[h]
+\includegraphics[width=\linewidth, height=0.6\linewidth]{Saturn_OpenMP_10000000}
+\caption{OpenMP / All Modes / m=n=1000000}
+\label{fig:omp_allm_10000000}
 \end{figure}
 
-\begin{figure}[h]
-\includegraphics[width=\linewidth]{Saturn_OpenMP_10000000}
-\caption{OpenMP / All Modes / m=n=1000000}
-\end{figure}
+When the problemsize gets bigger we can see a similar curve with OpenMP. (Figure \ref{fig:omp_allm_10000000}) Here  we can see that the paralell algorithm sped up the calculation until 6 cores if you have random values. After that, more cores mean more time. Another interesting bump in Figure \ref{fig:omp_allm_10000000} is that all different modes take longer if 30 or 31 cores are used. We think that this is related to problematic cache sceduling, but we did not investigate any further.
 
 \begin{figure}[h]
 \includegraphics[width=\linewidth]{Saturn_Cilk_10000000}
 \caption{Cilk / All Modes / m=n=10000000}
+\label{fig:cilk_allm_10000000}
 \end{figure}
 
+For \textit{cilk} we can see very interesting behaviour. The algorithm is really slow when using few cores. This is caused by the fixed amount of tasks that are created for \textit{cilk}. We are always creating 48 packets. This results in a huge sceduling overhead as the work sceduler has to switch between packets more often than it should be needed.
+
 \begin{figure}[h]
-\includegraphics[width=\linewidth]{Saturn_Random_100000}
-\caption{Comparison: OpenMP/Cilk}
+\includegraphics[width=\linewidth]{Saturn_Cilk_10000000_Cut}
+\caption{Cilk / All Modes / m=n=10000000 / p > 9}
+\label{fig:cilk_allm_10000000_cut}
 \end{figure}
+
+If you remove the first few cores (Figure \ref{fig:cilk_allm_10000000_cut}) you can see that the algorithm scales really well and still gets faster when 34 cores are used.
+This seems to be really good, but looks less pleasing if you compare the results to the times of our \textit{OpenMP} solution. (Figure \ref{fig:comparison_cilk_omp_random_10000000}) Cilk is still very slow in comparison.
 
 \begin{figure}[h]
 \includegraphics[width=\linewidth]{Saturn_Random_10000000}
 \caption{Comparison: OpenMP/Cilk}
+\label{fig:comparison_cilk_omp_random_10000000}
 \end{figure}
 
+Even though our paralell algorithms are slow for the problem sizes we tested, the trends seems to be that they work for bigger problemsizes. We managed to produce a small speed-up for p=7, m=n=10000000. (Figure \ref{fig:saturn_omp_speedup_random}) The speedup can be observed when looking at our random mode, as there is worse branch-prediction of the processor, which can be taken out of the calculation then. It seems that branch-prediction did increase the speed of our sequential solution so our paralell algorithms could not reach it easily.
+
 \begin{figure}[h]
-\includegraphics[width=\linewidth]{Saturn_OpenMP_Speedup}
+\includegraphics[width=\linewidth]{Saturn_OpenMP_Speedup_Random}
 \caption{OpenMP Speedup}
+\label{fig:saturn_omp_speedup_random}
 \end{figure}
 
+Either way, we were not able to reach any positive speedup in our \textit{cilk}-implementation. (Figure \ref{fig:saturn_cilk_speedup_random})
+
 \begin{figure}[h]
-\includegraphics[width=\linewidth]{Saturn_Cilk_Speedup}
+\includegraphics[width=\linewidth]{Saturn_Cilk_Speedup_Random}
 \caption{Cilk Speedup}
+\label{fig:saturn_cilk_speedup_random}
 \end{figure}
 
 \section{Summary}
