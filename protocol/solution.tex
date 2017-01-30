@@ -1,17 +1,47 @@
 \section{Solution}
 For every solution we took the following approach:
-The input arrays $A$ and $B$ are  split into parts $A_1,\ldots,A_p \subset A$  and $B_1,\ldots B_p \subset B$
+The sorted input arrays $A$ and $B$ are split into parts
+$A = A_1 \concat A_2 \concat \ldots \concat A_p$  and
+$B = B_1 \concat B_2 \concat \ldots \concat B_p$
 , in a way that all elements in $A_i \cup B_i$ are smaller then those in $A_{i+1} \cup B_{i+1}$. 
 With such a distribution given, each Process $i$ merges independently $A_i$ and $B_i$ using a simple sequential merge algorithm.
 Afterwards a master process concatinates the results.
 
-
 \subsection{Co-ranking}
-In order to obtain an distribution as mentioned above, we used a so called co-ranking algorithm.
-The idea was that the resulting array is divided in as equal ranges as possible.
-For each range we are interested in the elements of $A$ and $B$ which will go there.
-Since the input arrays are already sorted, these elements are positioned in a row.
-So the co-ranking algorithm should yield the indexes of $A$ and $B$ that frame such a block.
+In order to obtain a distribution as mentioned above, we implemented a co-ranking algorithm.
+%The idea was that the resulting array is divided in as equal ranges as possible.
+%For each range we are interested in the elements of $A$ and $B$ which will go there.
+%Since the input arrays are already sorted, these elements are positioned in a row within $A$.
+%So the co-ranking algorithm should yield the indexes of $A$ and $B$ that frame such a block.
+The idea is that for a given index $i$ of the resulting array $C$, 
+the co-ranking algorithm should yield us indexes $j$ and $k$
+%such that $j+k=l$ and $A[i] < C[l]$ for all $i < j$ and $B[i'] < C[l]$ for all $i' < k$.
+such that
+\begin{equation}\label{eq:coranking1}
+  C[0\ldots i-1] = \merge(A[0\ldots j-1],B[0\ldots k-1]).
+\end{equation}
+%The indexes $j$ and $k$ are called the coranks of $A$ and $B$, respectively.
+During the parallelization, the $i$'th process should calculate $C[i \cdot l, \ldots, (i+1) l - 1]$,
+where $l$ is the blocksize.
+Therefore we use the coranking algorithm to get $j_1, j_2, k_1, k_2$ by
+$(j_1,k_1) = \corank(i\cdot l)$ and $(j_2,k_2) = \corank((i+1)\cdot l)$.
+Then it holds that
+\begin{align*}
+  \merge(A[j_1,\ldots,j_2],B[k_1,\ldots,k_2]) = C[i \cdot l,\ldots, (i+1)l - 1].
+\end{align*}
+So each process calcultes the coranking and then performs a merge.
+
+To calculate the coranks we use that
+$j$ and $k$, which fulfill \eqref{eq:coranking1}, are also given by the following
+properties\footnote{As shown in https://arxiv.org/abs/1303.4312}
+\begin{enumerate}
+  \item $j + k = i$
+  \item $j = 0 \vee A[j-1] \leq B[k]$
+  \item $k = 0 \vee B[k-1] < A[j]$
+\end{enumerate}
+This leads to following implementation in C.
+\lstinputlisting[caption=co-ranking algorithm in C,label=code:corank,style=c]{corank.c}
+
 
 \subsection{Implementation}
 
