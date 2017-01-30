@@ -54,16 +54,16 @@ All threads share a common address space.
 If a variable is not explitly marked as private, all threads access the same address when they use this variable.
 When the parallel section is left, join ... master thread runs again.
 
-For our implementation this means, that the reading or the creation of the input arrays are first done sequentially in a master thread.
-Space for the result array is allocated.
-Then the section is entered.
-Each thread calculates
-•its ranges
-$\big(id \cdot \frac{output\_length}{threads}, (id+1)\frac{output\_length}{threads}\big)$
-• the coranks
-
-and merges directly in the space that is allocated for the output.
-
+For our implementation this means, that the reading/creation of the input arrays are first done sequentially in a master thread.
+Afterwards the space for the resulting array is allocated and is made accessible in a public variable.
+Then the parallel section is entered and the threads are created.
+Each thread calculates its coranks for the indexes
+$id \cdot \frac{output\_length}{number\_of\_threads}$
+and
+$(id+1)\cdot \frac{output\_length}{number\_of\_threads}$.
+Then it merges directly from the input arrays into the space that is allocated for the output.
+Note here that both the output array and the input arrays are public variables for all threads.
+Then the parallel segment is left and the master thread checks the result for corectness.
 
 
 \subsubsection{Cilk}
