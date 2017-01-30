@@ -266,6 +266,10 @@ int main(int argc, char** argv)
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
   // >>
-    printf("Time: %fs\n", end - start);
+  double elapsedTime = end - start;
+  int sec = (int) elapsedTime;
+  int nsec = (elapsedTime - sec) * 1000000000;
+
+  printf("Time: %ds %dns\n", sec, nsec);
    return 0;
 }

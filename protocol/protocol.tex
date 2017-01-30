@@ -4,6 +4,8 @@
 
 \usepackage{multicol}
 \usepackage{amsmath, amstext, amssymb,latexsym}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
 
 \newcommand{\team}{2}
 \newcommand{\dokumenttyp}{Report}
@@ -66,7 +68,7 @@ Rechnen}{Parallel Computing}}
 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
 \include{solution}
 
-\section{Benchmark setup}
+\section{Benchmark Setup}
 For our tests we measured the time that the operation needed with the appropiate methods. So we used \textit{omp\_get\_wtime} for OpenMP, \textit{clock\_gettime} for Cilk and \textit{MPI\_Wtime} for MPI.
 
 First we decided which problemsizes would be part of the benchmark. We agreed on the following sizes (m, n) where both input arrays will have this size:
@@ -107,13 +109,69 @@ There is four different cases we benchmarked:
 
 After specifying which problemsizes and the array layouts we want to test. We specified the rest of the testing parameters. We decieded to do \textbf{35 repetitions} for each test and only use the \textbf{median time} value for further calculations.
 
+We ran all permutations of these settings on two machines. We ran our OpenMP and Cilk together with our sequential Baseline on \textit{saturn} and a small laptop. MPI was only tested on the laptop as \textit{saturn} did not offer a working environment for MPI execution.
+
+\begin{center}
+\begin{tabular}{ l | l | l }
+\hline
+ & saturn & laptop \\ \hline
+CPU & AMD Opteron 6168 @ 1.9GHz & Intel Core i5-5200U CPU @ 2.70 GHz \\ \hline
+Cores & 48 & 4 \\ \hline
+L1 Cache & 64K & 32K \\ \hline
+L2 Cache & 512K & 256K \\ \hline
+L3 Cache & 5118K & 3072K \\ \hline
+RAM & 128 GB DDR3-1333 & 4 GB DDR3-1600 \\ \hline
+\end{tabular}
+\end{center}
+
 \section{Results}
 
 
 \subsection{Expected Results}
 
+
+
 \subsection{Real Results}
 
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_OpenMP_10000}
+\caption{OpenMP / All Modes / m=n=10000}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_Cilk_10000}
+\caption{Cilk / All Modes / m=n=10000}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_OpenMP_10000000}
+\caption{OpenMP / All Modes / m=n=1000000}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_Cilk_10000000}
+\caption{Cilk / All Modes / m=n=10000000}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_Random_100000}
+\caption{Comparison: OpenMP/Cilk}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_Random_10000000}
+\caption{Comparison: OpenMP/Cilk}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_OpenMP_Speedup}
+\caption{OpenMP Speedup}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_Cilk_Speedup}
+\caption{Cilk Speedup}
+\end{figure}
 
 \section{Summary}
 
