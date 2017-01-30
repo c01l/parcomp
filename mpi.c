@@ -4,10 +4,28 @@
 #include "loader.h"
 #include "corank.h"
 
+struct local_data {
+  int rank;
+  int num_of_processes;
+  int *part_A;
+  int *part_B;
+  int part_A_size;
+  int part_B_size;
+  MPI_Win *win_A;
+  MPI_Win *win_B;
+  int input_array1_length;
+  int input_array2_length;
+};
+
 int mpilogging = 1;
 
 int getBlocksize(int totalArrayLength, int numberOfProcesses) {
   return totalArrayLength / numberOfProcesses;
+}
+int getBlocksizeOfOutput(struct local_data localData) {
+  // so far ignore the rank and assume array length is divisible by numberOfProcesses
+  int size = (localData.input_array1_length + localData.input_array2_length) / localData.num_of_processes;
+  return size;
 }
 
 int getVal(int index, int total_length, MPI_Win win1, int proc, int thisRank, int *thisInput) {
@@ -30,8 +48,21 @@ int getVal(int index, int total_length, MPI_Win win1, int proc, int thisRank, in
   return value;
 }
 
+int getValFromA(int index, struct local_data localData) {
+  return getVal(index, localData.input_array1_length, *localData.win_A, localData.num_of_processes, localData.rank, localData.part_A);
+}
 
-struct pair_of_coranks corank_mpi(int i, int rank, int sizeA, int sizeB, MPI_Win win1, MPI_Win win2,int mpiSize, int *A, int *B) {
+int getValFromB(int index, struct local_data localData) {
+  return getVal(index, localData.input_array2_length, *localData.win_B, localData.num_of_processes, localData.rank, localData.part_B);
+}
+
+
+struct pair_of_coranks corank_mpi(int i, struct local_data localData) {
+  int sizeA = localData.input_array1_length, sizeB = localData.input_array2_length;
+  int mpiSize = localData.num_of_processes, rank = localData.rank;
+  int *A = localData.part_A, *B = localData.part_B;
+  MPI_Win win1 = *localData.win_A, win2 = *localData.win_B;
+
   struct pair_of_coranks coranks;
   int j = min(i, sizeA);
   int k = (i - j);
@@ -41,14 +72,15 @@ struct pair_of_coranks corank_mpi(int i, int rank, int sizeA, int sizeB, MPI_Win
 
   while(counter < sizeA + sizeB) {
     // if A[j-1] > B[k]
-    if(j > 0 && k < sizeB && getVal(j-1,sizeA, win1, mpiSize, rank, A) >  getVal(k, sizeB, win2, mpiSize, rank, B)) {
+    if(j > 0 && k < sizeB && getValFromA(j-1, localData) >  getValFromB(k, localData)) {
       k_low = k;
       int diff = j - j_low;
       int delta = diff/2 + (diff&1);
       j = j - delta;
       k = k + delta;
     // if B[k-1] >= B[j]
-    } else if (k>0 && j<sizeA && getVal(k-1, sizeB, win2, mpiSize, rank, B) >= getVal(j, sizeA, win1, mpiSize, rank, A)){
+
+    } else if (k>0 && j<sizeA && getValFromB(k-1, localData) >= getValFromA(j, localData)){
       j_low = j;
       int diff = k - k_low;
       int delta = diff/2 + (diff&1);
@@ -65,22 +97,54 @@ struct pair_of_coranks corank_mpi(int i, int rank, int sizeA, int sizeB, MPI_Win
 }
 
 
+void localMerge(int* output,  struct pair_of_coranks corank1, struct pair_of_coranks corank2,  struct local_data localData) {
+  int i;
+  // get the entries between coranks
+  struct merge_sample merge_payload;
+  merge_payload.size1 = corank2.corank_A - corank1.corank_A;
+  merge_payload.size2 = corank2.corank_B - corank1.corank_B;
+  merge_payload.array1 = malloc(sizeof(int) * merge_payload.size1);
+  merge_payload.array2 = malloc(sizeof(int) * merge_payload.size2);
+  for(i = 0; i < merge_payload.size1; i++) {
+    merge_payload.array1[i] = getValFromA(i + corank1.corank_A, localData); 
+  }
+  for(i = 0; i < merge_payload.size2; i++) {
+    merge_payload.array2[i] = getValFromB(i + corank1.corank_B, localData); 
+  }
+  // printf("#%i merge payload (size1,size2) (%i,%i)\n", localData.rank, merge_payload.size1, merge_payload.size2);
+  //<< MERGE
+  int totalLen = getBlocksizeOfOutput(localData);
+  if(merge_payload.size1 == 0){
+    for(i = 0; i< totalLen; i++) output[i] = merge_payload.array2[i];
+  } else if (merge_payload.size2 == 0) {
+    for(i = 0; i< totalLen; i++) output[i] = merge_payload.array1[i];
+  } else {
+    merge(&merge_payload, output, 0, totalLen);
+  }
+  freesample(&merge_payload);
+  // MERGE >>
+}
+
+
 int main(int argc, char** argv)
 {
   int TAG_sending_input_part1 = 100;
   int TAG_sending_input_part2 = 101;
   int TAG_sending_merge_output = 102;
   struct merge_sample sample; 
+  struct local_data localData;
   
   // set up MPI variables
   MPI_Init(&argc,&argv);
-  int mpiRank, mpiSize, mpiNameLength, i;
+  int mpiRank, mpiSize, i;
   MPI_Comm_size(MPI_COMM_WORLD, &mpiSize); //total number of processes -> mpiSize
   MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank); //process number -> mpiRank
-  char mpiName[MPI_MAX_PROCESSOR_NAME];
-  MPI_Get_processor_name(mpiName,&mpiNameLength); // name of processor -> mpiName
   MPI_Win winA, winB;
   int *A, *B;
+
+  // put values in local_data struct
+  localData.rank = mpiRank;
+  localData.num_of_processes = mpiSize;
 
   // read input:
   int errorCode = handleArguments(argc, argv, &sample);
@@ -116,9 +180,19 @@ int main(int argc, char** argv)
     int sizeB = sample.size2;
     int len1 = sizeA/mpiSize;
     int len2 = sizeB/mpiSize;
+    int len = sizeA + sizeB;
     A = malloc(sizeof(INPUTTYPE) * len1);
     B = malloc(sizeof(INPUTTYPE) * len2);
-    int len = sizeA + sizeB;
+
+    // put values to local_data struct:
+    localData.part_A = A;
+    localData.part_B = B;
+    localData.part_A_size = getBlocksize(sample.size1, mpiSize);
+    localData.part_B_size = getBlocksize(sample.size2, mpiSize);
+    localData.input_array1_length = sample.size1;
+    localData.input_array2_length = sample.size2;
+
+
   if(mpiRank == 0) {
     INPUTTYPE array1parts[mpiSize][len1];
     INPUTTYPE array2parts[mpiSize][len2];
@@ -127,15 +201,13 @@ int main(int argc, char** argv)
     }
     for(i = 0; i < sample.size2; i++) {
       array2parts[i/len2][i % len2] = sample.array2[i];
-    }
+    }  
 
     // send the parts to all the other ranks
-    MPI_Request *send_requests = malloc(sizeof(MPI_Request)*(mpiSize - 1));
     for(i = 1; i < mpiSize; i++){
-      MPI_Isend(array1parts[i], len1, MPI_INT, i, TAG_sending_input_part1,MPI_COMM_WORLD, send_requests + (i - 1));
-      MPI_Isend(array2parts[i], len2, MPI_INT, i, TAG_sending_input_part2,MPI_COMM_WORLD, send_requests + (i - 1));
+      MPI_Send(array1parts[i], len1, MPI_INT, i, TAG_sending_input_part1,MPI_COMM_WORLD);
+      MPI_Send(array2parts[i], len2, MPI_INT, i, TAG_sending_input_part2,MPI_COMM_WORLD);
     }
-    free(send_requests);
     
     for(i = 0; i < len1; i++) A[i] = array1parts[0][i];
     for(i = 0; i < len2; i++) B[i] = array2parts[0][i];
@@ -145,81 +217,48 @@ int main(int argc, char** argv)
     MPI_Recv(A, len1, MPI_INT, 0, TAG_sending_input_part1, MPI_COMM_WORLD,&mpiStatus);
     MPI_Recv(B, len2, MPI_INT, 0, TAG_sending_input_part2, MPI_COMM_WORLD,&mpiStatus);
   }
-
+  
+  // now that every process has its parts, start to benchmark
   double start = MPI_Wtime();
-   
 
   // enable access to A and B for other processes
-   MPI_Win_create(A, len1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winA);
-   MPI_Win_create(B, len2, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winB);
+  MPI_Win_create(A, len1, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winA);
+  MPI_Win_create(B, len2, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winB);
+  localData.win_A = &winA;
+  localData.win_B = &winB;
   
 
-  // << CORANK
+  // coranking
   struct pair_of_coranks corank1, corank2;
   int index1 = mpiRank*len/mpiSize;
   int index2 = (mpiRank + 1)*len/mpiSize;
-  corank1 = corank_mpi(index1, mpiRank,sizeA,sizeB , winA, winB, mpiSize, A, B);
-  corank2 = corank_mpi(index2, mpiRank,sizeA,sizeB , winA, winB, mpiSize, A, B);
-  // CORANK>>
-  printf("#%i successfully calculated corank1 (%i, %i) and corank2(%i, %i)\n", mpiRank, corank1.corank_A, corank1.corank_B, corank2.corank_A, corank2.corank_B);
+  corank1 = corank_mpi(index1, localData);
+  corank2 = corank_mpi(index2, localData);
+  if(corank2.corank_A - corank1.corank_A < 0 || corank2.corank_B - corank1.corank_B < 0){
+    printf("ERROR: wrong coranks for rank %i!\n", localData.rank);
+  }
 
-  //<< LOCAL MERGE
-  // get the entries between coranks
-  struct merge_sample merge_payload;
-  merge_payload.size1 = corank2.corank_A - corank1.corank_A;
-  merge_payload.size2 = corank2.corank_B - corank1.corank_B;
-  merge_payload.array1 = malloc(sizeof(int) * merge_payload.size1);
-  merge_payload.array2 = malloc(sizeof(int) * merge_payload.size2);
-  for(i = 0; i < merge_payload.size1; i++) {
-    merge_payload.array1[i] = getVal(i + corank1.corank_A, sizeA, winA, mpiSize, mpiRank, A); 
-  }
-  for(i = 0; i < merge_payload.size2; i++) {
-    merge_payload.array2[i] = getVal(i + corank1.corank_B, sizeB, winB, mpiSize, mpiRank, B); 
-  }
-  printf("#%i merge payload (%i,%i)\n", mpiRank, merge_payload.size1, merge_payload.size2);
+  // Merge
+  int *output = malloc(sizeof(int) * getBlocksizeOfOutput(localData));
+  localMerge(output, corank1, corank2, localData);
+
+  // free windows and stop time
   MPI_Win_free(&winA);
   MPI_Win_free(&winB);
-  printf("#%i successfully got elements to merge\n", mpiRank);
-
-  //<< MERGE
-  int totalLen = merge_payload.size1 + merge_payload.size2;
-  int *output = malloc(sizeof(int) * totalLen);
-  if(merge_payload.size1 == 0){
-    for(i = 0; i< totalLen; i++) output[i] = merge_payload.array2[i];
-  } else if (merge_payload.size2 == 0) {
-    for(i = 0; i< totalLen; i++) output[i] = merge_payload.array1[i];
-  } else {
-    merge(&merge_payload, output, 0, totalLen);
-  }
-  freesample(&merge_payload);
-  printf("#%i successfully merged\n", mpiRank);
-  echoArray(output, 5);
-  // MERGE >>
-
   double end = MPI_Wtime();
 
 
   // << Put everything together in Rank 0:
   if(mpiRank == 0){
     int *result = malloc(sizeof(int) * len);
-    for(i = 0; i< totalLen; i++) result[i] = output[i]; // write rank 0's items to result
-
-    // receive all parts async:
+    for(i = 0; i< getBlocksizeOfOutput(localData); i++) result[i] = output[i]; // write rank 0's items to result
     int offset = getBlocksize(len,mpiSize); 
-    // MPI_Request *recv_request = malloc(sizeof(MPI_Request) * (mpiSize - 1));
     for(i = 1; i < mpiSize; i++) {
-      MPI_Status *status;
-      MPI_Recv(result + (i*offset), offset, MPI_INT, i, TAG_sending_merge_output, MPI_COMM_WORLD, status);
+      MPI_Status status;
+      MPI_Recv(result + (i*offset), offset, MPI_INT, i, TAG_sending_merge_output, MPI_COMM_WORLD, &status);
       int elemenets;
-      MPI_Get_count(status, MPI_INT, &elemenets);
-      printf("#%i received %i elements from %i\n", mpiRank, elemenets, (*status).MPI_SOURCE);
-      // MPI_Irecv(result + (i*offset), offset, MPI_INT, i, TAG_sending_merge_output, MPI_COMM_WORLD, recv_request + (i - 1));
+      MPI_Get_count(&status, MPI_INT, &elemenets);
     }
-    // wait until all parts have been received
-    // MPI_Status mpiStatus;
-    //for(i=1; i<mpiSize; i++) MPI_Wait(recv_request + (i - 1), &mpiStatus);
-    printf("#%i successfully received all parts\n", mpiRank);
-    //free(recv_request);
 
     //check result
     testIfSorted(result, len);
@@ -229,15 +268,10 @@ int main(int argc, char** argv)
     // the rest sends their merge-outputs to 0
     int dest = 0;
     int numberOfElements = getBlocksize(len, mpiSize);
-    printf("#%i is about to send %i elements to %i\n", mpiRank, numberOfElements, dest);
-    echoArray(output, 5);
     MPI_Send(output, numberOfElements, MPI_INT, dest, TAG_sending_merge_output,MPI_COMM_WORLD);
-    printf("#%i successfully sent merged part to rank %i\n", mpiRank, dest);
   }
-  printf("#%i about to finalize\n", mpiRank);
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
-  printf("#%isuccessfully finalized\n", mpiRank);
   // >>
     printf("Time: %fs\n", end - start);
    return 0;
