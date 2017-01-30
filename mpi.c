@@ -194,25 +194,18 @@ int main(int argc, char** argv)
 
 
   if(mpiRank == 0) {
-    INPUTTYPE array1parts[mpiSize][len1];
-    INPUTTYPE array2parts[mpiSize][len2];
-    for(i = 0; i < sample.size1; i++) {
-      array1parts[i/len1][i % len1] = sample.array1[i];
-    }
-    for(i = 0; i < sample.size2; i++) {
-      array2parts[i/len2][i % len2] = sample.array2[i];
-    }  
-
-    // send the parts to all the other ranks
+  // send the parts to all the other ranks
     for(i = 1; i < mpiSize; i++){
-      MPI_Send(array1parts[i], len1, MPI_INT, i, TAG_sending_input_part1,MPI_COMM_WORLD);
-      MPI_Send(array2parts[i], len2, MPI_INT, i, TAG_sending_input_part2,MPI_COMM_WORLD);
+      int offset1 = getBlocksize(sample.size1, mpiSize);
+      int offset2 = getBlocksize(sample.size2, mpiSize);
+      MPI_Send(sample.array1 + i*offset1, len1, MPI_INT, i, TAG_sending_input_part1,MPI_COMM_WORLD);
+      MPI_Send(sample.array2 + i*offset2, len2, MPI_INT, i, TAG_sending_input_part2,MPI_COMM_WORLD);
     }
-    
-    for(i = 0; i < len1; i++) A[i] = array1parts[0][i];
-    for(i = 0; i < len2; i++) B[i] = array2parts[0][i];
+   // create parts for rank 0
+    for(i = 0; i < len1; i++) A[i] = sample.array1[i];
+    for(i = 0; i < len2; i++) B[i] = sample.array2[i];
   } else {
-    // GET input from RANK 0
+    // other ranks get input from rank 0
     MPI_Status mpiStatus;
     MPI_Recv(A, len1, MPI_INT, 0, TAG_sending_input_part1, MPI_COMM_WORLD,&mpiStatus);
     MPI_Recv(B, len2, MPI_INT, 0, TAG_sending_input_part2, MPI_COMM_WORLD,&mpiStatus);
