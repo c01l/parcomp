@@ -19,7 +19,7 @@ such that
 The impact for parallelization is the following:
 Let $i$ be the id of a process,
 then we make this process calculate the entries of $C[i \cdot l, \ldots, (i+1)\cdot l - 1]$,
-where $l$ is the blocksize.
+where $l$ is the blocksize that each process calculates.
 Therefore it uses the coranking algorithm to get
 $(j_1,k_1) = \corank(i\cdot l)$ and $(j_2,k_2) = \corank((i+1)\cdot l)$.
 With \eqref{eq:coranking1} one has
@@ -33,11 +33,31 @@ $j$ and $k$, which fulfill \eqref{eq:coranking1}, are also given by the followin
 properties\footnote{As shown in https://arxiv.org/abs/1303.4312}
 \begin{enumerate}
   \item $j + k = i$
-  \item $j = 0 \vee A[j-1] \leq B[k]$
+  \item $j = 0 \vee A[j-1] \leq B[k]$\label{first_inequal}
   \item $k = 0 \vee B[k-1] < A[j]$
 \end{enumerate}
-This leads to following implementation in C.
-\lstinputlisting[caption=co-ranking algorithm in C,label=code:corank,style=c]{corank.c}
+Tith leads to a binary-like search for the co-ranks.
+For $j$ take an arbitrary value $\leq m$ and set $k$ so that $k + j = i$.
+Also keep track of the lower limits for $j$ and $k$ in $j_{min}$ and $k_{min}$.
+
+Now check:
+If $j=0 \vee A[j-1] > B[k]$, then point 2 is violated so $j$ was too great and $k$ too small,
+so set $k_{low}=k$ and try again with $j = \floor*{\middlee(j,j_{low})}$ and $k$ adjusted such that $j + k = i$.
+
+Or if $k=0 \vee B[k-1] \geq A[j]$, then point 1 is violated and $j$ was too small.
+So set $j_{low}=j$ and try again with $k = \floor*{\middlee(k,k_{low})}$ and $j$ adjusted according to point 1.
+
+It can be proven that this infact terminates.
+
+%\lstinputlisting[caption=co-ranking algorithm in C,label=code:corank,style=c]{corank.c}
+%\begin{lstlisting}[caption=co-ranking algorithm in C,label=code:corank,style=c]
+ % while(counter++ < (m + n)) {
+  %  if( j>0  &&  k<n  &&  A[j-1]>B[k] ) {
+  %    k_low = k;
+  %    int diff = j-j_low, delta = diff/2 + (diff&1);
+  %    j = j - delta;
+  %}
+%\end{lstlisting}
 
 
 \subsection{Implementation}
