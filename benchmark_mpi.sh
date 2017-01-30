@@ -1,6 +1,19 @@
-PROG=$1
+CORES=$1
+MODE=$2
+SIZE=$3
 
-if [ -z "$PROG" ]; then
+if [ -z "$CORES" ]; then
+	echo "Cores missing!"
+	exit 1
+fi
+
+if [ -z "$MODE" ]; then
+	echo "Mode missing!"
+	exit 1
+fi
+
+if [ -z "$SIZE" ]; then
+	echo "Size missing!"
 	exit 1
 fi
 
@@ -9,7 +22,7 @@ tmpf2=$(mktemp)
 
 i=0
 
-$($PROG | grep "Time: " > $tmpf2)
+mpirun -np $CORES mpi -$MODE $SIZE $SIZE | grep "Time: " > $tmpf2
 while IFS='' read -r line || [[ -n "$line" ]]
 do
 	#echo $line
