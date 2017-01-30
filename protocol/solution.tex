@@ -30,7 +30,7 @@ So each process can independently both calculate the coranks and perform the mer
 
 To calculate the coranks we use that
 $j$ and $k$, which fulfill \eqref{eq:coranking1}, are also given by the following
-properties\footnote{As shown in https://arxiv.org/abs/1303.4312}
+properties\footnote{As shown in Lemma1 in Siebert, Träff: Perfectly load-balanced, optimal, stable, parallel merge (https://arxiv.org/abs/1303.4312)}
 \begin{enumerate}
   \item $j + k = i$
   \item $j = 0 \vee A[j-1] \leq B[k]$\label{first_inequal}
@@ -47,7 +47,7 @@ so set $k_{low}=k$ and try again with $j = \floor*{\middlee(j,j_{low})}$ and $k$
 Or if $k=0 \vee B[k-1] \geq A[j]$, then point 1 is violated and $j$ was too small.
 So set $j_{low}=j$ and try again with $k = \floor*{\middlee(k,k_{low})}$ and $j$ adjusted according to point 1.
 
-It can be proven that this infact terminates.
+It can be proven that this infact terminates and computes the co-ranks to $i$\footnote{Proposition1 of the same source by Siebert and Träff}.
 
 %\lstinputlisting[caption=co-ranking algorithm in C,label=code:corank,style=c]{corank.c}
 %\begin{lstlisting}[caption=co-ranking algorithm in C,label=code:corank,style=c]
