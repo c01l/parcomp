@@ -1,4 +1,5 @@
 \section{Solution}
+
 For every solution we took the following approach:
 The sorted input arrays $A$ and $B$ are split into parts
 $A = A_1 \concat A_2 \concat \ldots \concat A_p$  and
@@ -23,13 +24,13 @@ such that
 %The indexes $j$ and $k$ are called the coranks of $A$ and $B$, respectively.
 During the parallelization, the $i$'th process should calculate $C[i \cdot l, \ldots, (i+1) l - 1]$,
 where $l$ is the blocksize.
-Therefore we use the coranking algorithm to get $j_1, j_2, k_1, k_2$ by
+Therefore we use the coranking algorithm to get indexes $j_1, j_2, k_1, k_2$ by
 $(j_1,k_1) = \corank(i\cdot l)$ and $(j_2,k_2) = \corank((i+1)\cdot l)$.
 Then it holds that
 \begin{align*}
   \merge(A[j_1,\ldots,j_2],B[k_1,\ldots,k_2]) = C[i \cdot l,\ldots, (i+1)l - 1].
 \end{align*}
-So each process calcultes the coranking and then performs a merge.
+So each process can independently both calculate the coranks and perform the merge.
 
 To calculate the coranks we use that
 $j$ and $k$, which fulfill \eqref{eq:coranking1}, are also given by the following
@@ -46,6 +47,24 @@ This leads to following implementation in C.
 \subsection{Implementation}
 
 \subsubsection{OpenMP}
+In OpenMP, the programm runs sequentially in one master thread until it reaches a parallel section.
+At this point new threads are created to execute this section simultaneously.
+This section is marked by the directive \textbf{pragma omp parallel num\_threads(p) private(a, b, ..)}, where p is the number of threads and a, b, ... are local variables.
+All threads share a common address space.
+If a variable is not explitly marked as private, all threads access the same address when they use this variable.
+When the parallel section is left, join ... master thread runs again.
+
+For our implementation this means, that the reading or the creation of the input arrays are first done sequentially in a master thread.
+Space for the result array is allocated.
+Then the section is entered.
+Each thread calculates
+•its ranges
+$\big(id \cdot \frac{output\_length}{threads}, (id+1)\frac{output\_length}{threads}\big)$
+• the coranks
+
+and merges directly in the space that is allocated for the output.
+
+
 
 \subsubsection{Cilk}
 
@@ -75,4 +94,10 @@ If it is the same process it reads it from its own array.
 Otherwise it uses the access method from \hyperref[code:mpi_get]{Listing \ref*{code:mpi_get}}.
 
 For a MPI version of the corank algorithm, we replaced all occurrences of $A[i]$ and $B[i]$ with theValueFrom()-function.
+
+
+\textbf{Issues with MPI:}
+At the time of writing we had problems to run our MPI implementation with arbitrary array sizes.
+So we assume that the number of processes divides the array lengths and that both arrays have the same size.
 \section{Testing}
+
