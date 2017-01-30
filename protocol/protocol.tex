@@ -3,6 +3,8 @@
 \usepackage{pp}
 
 \usepackage{multicol}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
 
 \newcommand{\team}{2}
 \newcommand{\dokumenttyp}{Report}
@@ -61,7 +63,7 @@ Rechnen}{Parallel Computing}}
 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
 \include{solution}
 
-\section{Benchmark setup}
+\section{Benchmark Setup}
 For our tests we measured the time that the operation needed with the appropiate methods. So we used \textit{omp\_get\_wtime} for OpenMP, \textit{clock\_gettime} for Cilk and \textit{MPI\_Wtime} for MPI.
 
 First we decided which problemsizes would be part of the benchmark. We agreed on the following sizes (m, n) where both input arrays will have this size:
@@ -122,8 +124,49 @@ RAM & 128 GB DDR3-1333 & 4 GB DDR3-1600 \\ \hline
 
 \subsection{Expected Results}
 
+
+
 \subsection{Real Results}
 
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_OpenMP_10000}
+\caption{OpenMP / All Modes / m=n=10000}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_Cilk_10000}
+\caption{Cilk / All Modes / m=n=10000}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_OpenMP_10000000}
+\caption{OpenMP / All Modes / m=n=1000000}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_Cilk_10000000}
+\caption{Cilk / All Modes / m=n=10000000}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_Random_100000}
+\caption{Comparison: OpenMP/Cilk}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_Random_10000000}
+\caption{Comparison: OpenMP/Cilk}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_OpenMP_Speedup}
+\caption{OpenMP Speedup}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=\linewidth]{Saturn_Cilk_Speedup}
+\caption{Cilk Speedup}
+\end{figure}
 
 \section{Summary}
 
