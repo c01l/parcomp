@@ -1,0 +1,18 @@
+\section{Introduction}
+In the following report we present our solution for parallel merging – using the programming frameworks
+Cilk,
+OpenMP
+and MPI.
+Two given ordered arrays of length $m$ and $n$ are merged in a resulting array which is ordered again.
+In order to do this in parallel, the task of merging must somehow be distributed among several instances.
+This causes differences for each of the technologies mentioned above.
+But there are also some general ideas that could be used for all solutions.
+
+So we are going to show how we approached this problem in general.
+Then we go into details of the differences and we present how the problem was be implemented for each solution.
+
+An other interesting aspect is performance.
+What is the result of parallelization?
+Where are the differences between our solutions?
+These questions are answered in the last sections.
+There we demonstrate how our solutions behave for several input sizes and on different amounts of used processes/threads.
