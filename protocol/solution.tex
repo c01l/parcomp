@@ -1,5 +1,4 @@
 \section{Solution}
-
 For every solution we took the following approach:
 The sorted input arrays $A$ and $B$ are split into parts
 $A = A_1 \concat A_2 \concat \ldots \concat A_p$  and
@@ -7,26 +6,23 @@ $B = B_1 \concat B_2 \concat \ldots \concat B_p$
 , in a way that all elements in $A_i \cup B_i$ are smaller then those in $A_{i+1} \cup B_{i+1}$. 
 With such a distribution given, each Process $i$ merges independently $A_i$ and $B_i$ using a simple sequential merge algorithm.
 Afterwards a master process concatinates the results.
+The sequential merge function is in following noted by $\merge()$.
 
 \subsection{Co-ranking}
 In order to obtain a distribution as mentioned above, we implemented a co-ranking algorithm.
-%The idea was that the resulting array is divided in as equal ranges as possible.
-%For each range we are interested in the elements of $A$ and $B$ which will go there.
-%Since the input arrays are already sorted, these elements are positioned in a row within $A$.
-%So the co-ranking algorithm should yield the indexes of $A$ and $B$ that frame such a block.
 The idea is that for a given index $i$ of the resulting array $C$, 
-the co-ranking algorithm should yield us indexes $j$ and $k$
-%such that $j+k=l$ and $A[i] < C[l]$ for all $i < j$ and $B[i'] < C[l]$ for all $i' < k$.
+the co-ranking algorithm $\corank(i)$ should yield a pair of indexes $(j,k)$
 such that
 \begin{equation}\label{eq:coranking1}
   C[0\ldots i-1] = \merge(A[0\ldots j-1],B[0\ldots k-1]).
 \end{equation}
-%The indexes $j$ and $k$ are called the coranks of $A$ and $B$, respectively.
-During the parallelization, the $i$'th process should calculate $C[i \cdot l, \ldots, (i+1) l - 1]$,
+The impact for parallelization is the following:
+Let $i$ be the id of a process,
+then we make this process calculate the entries of $C[i \cdot l, \ldots, (i+1)\cdot l - 1]$,
 where $l$ is the blocksize.
-Therefore we use the coranking algorithm to get indexes $j_1, j_2, k_1, k_2$ by
+Therefore it uses the coranking algorithm to get
 $(j_1,k_1) = \corank(i\cdot l)$ and $(j_2,k_2) = \corank((i+1)\cdot l)$.
-Then it holds that
+With \eqref{eq:coranking1} one has
 \begin{align*}
   \merge(A[j_1,\ldots,j_2],B[k_1,\ldots,k_2]) = C[i \cdot l,\ldots, (i+1)l - 1].
 \end{align*}
@@ -45,6 +41,14 @@ This leads to following implementation in C.
 
 
 \subsection{Implementation}
+Every implementation uses the following structure:
+\begin{enumerate}
+  \item read the input
+  \item merge in parallel using co-ranks
+  \item put the parts together
+  \item check if result is ordered again
+\end{enumerate}
+The details for each implementation are presented in the following paragraphs.
 
 \subsubsection{OpenMP}
 In OpenMP, the programm runs sequentially in one master thread until it reaches a parallel section.
@@ -103,8 +107,12 @@ Otherwise it uses the access method from \hyperref[code:mpi_get]{Listing \ref*{c
 For a MPI version of the corank algorithm, we replaced all occurrences of $A[i]$ and $B[i]$ with theValueFrom()-function.
 
 
-\textbf{Issues with MPI:}
+\textbf{Problems with MPI:}
 At the time of writing we had problems to run our MPI implementation with arbitrary array sizes.
 So we assume that the number of processes divides the array lengths and that both arrays have the same size.
+Unfortunately we could only implement a solution for INT-arrays.
+
 \section{Testing}
+We tested our solutions with different .
+
 
