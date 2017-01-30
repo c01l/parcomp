@@ -1,5 +1,4 @@
 \section{Solution}
-
 For every solution we took the following approach:
 The sorted input arrays $A$ and $B$ are split into parts
 $A = A_1 \concat A_2 \concat \ldots \concat A_p$  and
@@ -7,26 +6,23 @@ $B = B_1 \concat B_2 \concat \ldots \concat B_p$
 , in a way that all elements in $A_i \cup B_i$ are smaller then those in $A_{i+1} \cup B_{i+1}$. 
 With such a distribution given, each Process $i$ merges independently $A_i$ and $B_i$ using a simple sequential merge algorithm.
 Afterwards a master process concatinates the results.
+The sequential merge function is in following noted by $\merge()$.
 
 \subsection{Co-ranking}
 In order to obtain a distribution as mentioned above, we implemented a co-ranking algorithm.
-%The idea was that the resulting array is divided in as equal ranges as possible.
-%For each range we are interested in the elements of $A$ and $B$ which will go there.
-%Since the input arrays are already sorted, these elements are positioned in a row within $A$.
-%So the co-ranking algorithm should yield the indexes of $A$ and $B$ that frame such a block.
 The idea is that for a given index $i$ of the resulting array $C$, 
-the co-ranking algorithm should yield us indexes $j$ and $k$
-%such that $j+k=l$ and $A[i] < C[l]$ for all $i < j$ and $B[i'] < C[l]$ for all $i' < k$.
+the co-ranking algorithm $\corank(i)$ should yield a pair of indexes $(j,k)$
 such that
 \begin{equation}\label{eq:coranking1}
   C[0\ldots i-1] = \merge(A[0\ldots j-1],B[0\ldots k-1]).
 \end{equation}
-%The indexes $j$ and $k$ are called the coranks of $A$ and $B$, respectively.
-During the parallelization, the $i$'th process should calculate $C[i \cdot l, \ldots, (i+1) l - 1]$,
-where $l$ is the blocksize.
-Therefore we use the coranking algorithm to get indexes $j_1, j_2, k_1, k_2$ by
+The impact for parallelization is the following:
+Let $i$ be the id of a process,
+then we make this process calculate the entries of $C[i \cdot l, \ldots, (i+1)\cdot l - 1]$,
+where $l$ is the blocksize that each process calculates.
+Therefore it uses the coranking algorithm to get
 $(j_1,k_1) = \corank(i\cdot l)$ and $(j_2,k_2) = \corank((i+1)\cdot l)$.
-Then it holds that
+With \eqref{eq:coranking1} one has
 \begin{align*}
   \merge(A[j_1,\ldots,j_2],B[k_1,\ldots,k_2]) = C[i \cdot l,\ldots, (i+1)l - 1].
 \end{align*}
@@ -34,17 +30,45 @@ So each process can independently both calculate the coranks and perform the mer
 
 To calculate the coranks we use that
 $j$ and $k$, which fulfill \eqref{eq:coranking1}, are also given by the following
-properties\footnote{As shown in https://arxiv.org/abs/1303.4312}
+properties\footnote{As shown in Lemma1 in Siebert, Träff: Perfectly load-balanced, optimal, stable, parallel merge (https://arxiv.org/abs/1303.4312)}
 \begin{enumerate}
   \item $j + k = i$
-  \item $j = 0 \vee A[j-1] \leq B[k]$
+  \item $j = 0 \vee A[j-1] \leq B[k]$\label{first_inequal}
   \item $k = 0 \vee B[k-1] < A[j]$
 \end{enumerate}
-This leads to following implementation in C.
-\lstinputlisting[caption=co-ranking algorithm in C,label=code:corank,style=c]{corank.c}
+Tith leads to a binary-like search for the co-ranks.
+For $j$ take an arbitrary value $\leq m$ and set $k$ so that $k + j = i$.
+Also keep track of the lower limits for $j$ and $k$ in $j_{min}$ and $k_{min}$.
+
+Now check:
+If $j=0 \vee A[j-1] > B[k]$, then point 2 is violated so $j$ was too great and $k$ too small,
+so set $k_{low}=k$ and try again with $j = \floor*{\middlee(j,j_{low})}$ and $k$ adjusted such that $j + k = i$.
+
+Or if $k=0 \vee B[k-1] \geq A[j]$, then point 1 is violated and $j$ was too small.
+So set $j_{low}=j$ and try again with $k = \floor*{\middlee(k,k_{low})}$ and $j$ adjusted according to point 1.
+
+It can be proven that this infact terminates and computes the co-ranks to $i$\footnote{Proposition1 of the same source by Siebert and Träff}.
+
+%\lstinputlisting[caption=co-ranking algorithm in C,label=code:corank,style=c]{corank.c}
+%\begin{lstlisting}[caption=co-ranking algorithm in C,label=code:corank,style=c]
+ % while(counter++ < (m + n)) {
+  %  if( j>0  &&  k<n  &&  A[j-1]>B[k] ) {
+  %    k_low = k;
+  %    int diff = j-j_low, delta = diff/2 + (diff&1);
+  %    j = j - delta;
+  %}
+%\end{lstlisting}
 
 
 \subsection{Implementation}
+Every implementation uses the following structure:
+\begin{enumerate}
+  \item read the input
+  \item merge in parallel using co-ranks
+  \item put the parts together
+  \item check if result is ordered again
+\end{enumerate}
+The details for each implementation are presented in the following paragraphs.
 
 \subsubsection{OpenMP}
 In OpenMP, the programm runs sequentially in one master thread until it reaches a parallel section.
@@ -69,8 +93,6 @@ Then it merges directly from the input arrays into the space that is allocated f
 
 Note here that both the output array and the input arrays are public variables for all threads.
 Then the parallel segment is left and the master thread checks the result for corectness.
-
-The following snipped shows how the parallel part
 
 
 \subsubsection{Cilk}
@@ -114,31 +136,37 @@ MPI_Win_create(B, len2, sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winB);
 
 Afterwards other processes can read from them as presented in \hyperref[code:mpi_get]{Listing \ref*{code:mpi_get}}.
 
-\begin{lstlisting}[caption=window to share arrays, label=code:mpi_get,style=c]
+Eventually we wrote a function getValueFrom(int index,MPI\_Win win,...) for reading elements from a certain position in $A$ (or $B$).
+Therefor it calculates which process has the required part of $A$ (or $B$).
+If it is the same process it reads it from its own array.
+Otherwise it uses the access method from \hyperref[code:mpi_get]{Listing \ref*{code:mpi_get}}.
+
+\begin{lstlisting}[caption=window to share arrays, label=code:mpi_get, style=c]
 int value;
 MPI_Win_lock\(MPI_LOCK_SHARED, targetRank, 0, win1\);
   MPI_Get\(value, 1, MPI_INT, targetRank, d, 1, MPI_INT, win1\);
 MPI_Win_unlock\(targetRank, win1\);
 \end{lstlisting}
 
-Eventually we wrote a function getValueFrom(int index,MPI\_Win win,...) for reading elements from a certain position in $A$ (or $B$).
-Therefor it calculates which process has the required part of $A$ (or $B$).
-If it is the same process it reads it from its own array.
-Otherwise it uses the access method from \hyperref[code:mpi_get]{Listing \ref*{code:mpi_get}}.
-
 For a MPI version of the corank algorithm, we replaced all occurrences of $A[i]$ and $B[i]$ with theValueFrom()-function.
 
 
-\textbf{Issues with MPI:}
+\textbf{Problems with MPI:}
 At the time of writing we had problems to run our MPI implementation with arbitrary array sizes.
 So we assume that the number of processes divides the array lengths and that both arrays have the same size.
 
-\section{Testing}
-We performed tests with small sample arrays where the results are known.
+Unfortunately, our MPI solution only supports INT-arrays.
 
+\section{Testing}
 The coranking algorithm was tested more consequently as it is used by every implementation for each framework. We wrote a program that tested the functionality for normal cases and edge cases like arrays with only one element or arrays with duplicate numbers.
 
-The results of each calculation was furthermore tested for correctness. It was assumed that the input sequences are are each sorted in itself and that there are no duplicates. So after the merge we could check if the following formula holds.
+We tested every implementation with the following scenarios:
+\begin{enumerate}
+  \item all elements in the first array are smaller than these in the second array
+  \item all elements in the first array are greater than these in the second array
+  \item the numberes are distributed randomly, but arrays are still ordered
+\end{enumerate}
+In addition, the resulting array is always checked for correctness as part of the implementation.
+During the complete benchmarking process, the code was therefore tested automatically.
 
-TODO
 

@@ -3,7 +3,7 @@
 \usepackage{pp}
 
 \usepackage{multicol}
-\usepackage{amsmath, amstext, amssymb,latexsym}
+\usepackage{amsmath, amstext, amssymb,latexsym,mathtools}
 \usepackage{graphicx}
 \graphicspath{ {images/} }
 
@@ -28,7 +28,9 @@ Rechnen}{Parallel Computing}}
 \newcommand{\concat}{\ensuremath{\scalebox{0.8}{++}}}
 \newcommand{\merge}{\mathsf{merge}}
 \newcommand{\corank}{\mathsf{corank}}
-
+\newcommand{\middlee}{\mathsf{mid}}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 
 \begin{document}
 
@@ -61,7 +63,7 @@ Rechnen}{Parallel Computing}}
 
 %\setcounter{section}{0}
 %\setcounter{tocdepth}{2}
-\tableofcontents
+%\tableofcontents
 
 \include{introduction}
 \include{solution}
@@ -187,10 +189,6 @@ Either way, we were not able to reach any positive speedup in our \textit{cilk}-
 \caption{Cilk Speedup}
 \label{fig:saturn_cilk_speedup_random}
 \end{figure}
-
-\section{Summary}
-We produced code that works for big numbers, but tested it with relativly small problem sizes. The result is that we seem to have no real speedup.
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
